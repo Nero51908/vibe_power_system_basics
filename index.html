@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>powerSystemMathVis — interactive teaching pages</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap');
+
+:root{
+  --ink:#0B1220; --panel:#111A2C; --panel2:#0E1626; --line:#243450; --gridline:#141F33;
+  --text:#DCE4F2; --dim:#8CA0BE; --faint:#5B6E8C; --amber:#FFB454; --amber-dim:#C98A3B;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;color:var(--text);background:var(--ink);
+  background-image:
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size:44px 44px;
+  font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:17px;line-height:1.55;
+}
+main{max-width:880px;margin:0 auto;padding:64px 24px 72px}
+.eyebrow{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.22em;color:var(--amber);text-transform:uppercase}
+h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(30px,4.5vw,44px);line-height:1.06;margin:10px 0 12px;letter-spacing:-.01em}
+.dek{color:var(--dim);max-width:64ch;margin:0 0 36px}
+.dek b{color:var(--text);font-weight:600}
+
+.card{display:block;text-decoration:none;color:inherit;background:var(--panel);
+  border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:0 0 16px;
+  transition:border-color .15s}
+.card:hover{border-color:var(--amber-dim)}
+.card .n{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase}
+.card h2{font-family:'Archivo',sans-serif;font-weight:700;font-size:22px;margin:6px 0 6px}
+.card p{margin:0;color:var(--dim);font-size:15px;max-width:70ch}
+.card .go{float:right;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:14px;margin-top:4px}
+.card:hover .go{color:var(--amber)}
+
+footer{border-top:1px solid var(--line);margin-top:36px;padding-top:20px;color:var(--faint);font-size:13px}
+footer code{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--dim)}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">EE4400 · EE5410 · power systems · 50 Hz</div>
+  <h1>The math, live</h1>
+  <p class="dek">Interactive pages that build intuition for power-system math. All three run
+  on the <b>same worked example</b> — 300&nbsp;MW delivered at 275&nbsp;kV on the Queensland
+  backbone — so the numbers cross-reference between lectures. Everything is draggable;
+  nothing needs the internet.</p>
+
+  <a class="card" href="phasors-and-sinusoids.html">
+    <span class="go">open →</span>
+    <div class="n">01 · mental model</div>
+    <h2>Twenty milliseconds, frozen</h2>
+    <p>Phasors as single frames of a 50&nbsp;turns-per-second film: the projection machine,
+    RMS vs the √2 crest, phase shift as a time you can measure, and why the three-phase
+    power sum never ripples.</p>
+  </a>
+
+  <a class="card" href="displacement-power-factor.html">
+    <span class="go">open →</span>
+    <div class="n">02 · worked example</div>
+    <h2>The same 300 megawatts, twice</h2>
+    <p>Displacement power factor: multiply v(t) by i(t), watch the triangle you pay for,
+    correct it with capacitors — and see why cos&nbsp;φ stops being the power factor the
+    moment the current distorts.</p>
+  </a>
+
+  <a class="card" href="three-phase-AC-line-losses.html">
+    <span class="go">open →</span>
+    <div class="n">03 · worked example</div>
+    <h2>The price of 120 kilometres</h2>
+    <p>Three-phase line losses end to end: the per-phase circuit, where √3 and the 30° live,
+    walking the line, and the 1/V² loss cliff that explains why the grid keeps climbing
+    the voltage ladder.</p>
+  </a>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>The Price of 120 Kilometres — Three-Phase Line Losses</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#0B1220;          /* night-grid background */
+  --panel:#111A2C;        /* instrument panel */
+  --panel2:#0E1626;
+  --line:#243450;         /* hairline */
+  --gridline:#141F33;     /* graph paper */
+  --text:#DCE4F2;
+  --dim:#8CA0BE;
+  --faint:#5B6E8C;
+  --amber:#FFB454;        /* instrument numerals */
+  --amber-dim:#C98A3B;
+  --good:#6FDF9A;
+  --bad:#FF7A85;
+  --phA:#FF5964;          /* red   — phase A */
+  --phB:#EDF2FA;          /* white — phase B */
+  --phC:#5CA8FF;          /* blue  — phase C */
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);background:var(--ink);
+  background-image:
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size:44px 44px;
+  font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:17px;line-height:1.55;
+}
+main{max-width:1360px;margin:0 auto;padding:0 24px 72px}
+a{color:var(--amber)}
+code,.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+
+/* ---------- header ---------- */
+header{max-width:1360px;margin:0 auto;padding:48px 24px 8px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.22em;color:var(--amber);text-transform:uppercase}
+h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(30px,5vw,52px);line-height:1.04;margin:10px 0 14px;letter-spacing:-.01em}
+.dek{max-width:70ch;color:var(--dim);font-size:17.5px}
+.dek b{color:var(--text);font-weight:600}
+
+/* live instrument strip */
+.strip{display:flex;flex-wrap:wrap;gap:14px;margin:26px 0 8px}
+.gauge{flex:1 1 200px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;position:relative;overflow:hidden}
+.gauge:before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);opacity:.5}
+.gauge .k{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.gauge .v{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:clamp(24px,3.4vw,34px);color:var(--amber);font-variant-numeric:tabular-nums;margin-top:2px}
+.gauge .u{font-size:14px;color:var(--dim);font-weight:400;margin-left:4px}
+
+/* ---------- control deck (sticky) ---------- */
+#deckSentinel{height:1px}
+.deck-wrap{position:sticky;top:0;z-index:60;background:var(--ink);padding:10px 0 8px;margin:18px 0 40px}
+.deck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 10px;transition:box-shadow .2s,border-color .2s,padding .2s}
+.deck-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.deck-head .spacer{flex:1 1 auto}
+.deck h2{margin:0 0 4px;font-family:'Archivo';font-size:15px;font-weight:700;letter-spacing:.04em}
+.deck-mini{display:none;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.deck-mini b{color:var(--amber);font-weight:600}
+.btn.tiny{padding:4px 10px;font-size:12px}
+.deck-wrap.stuck .deck-mini,.deck-wrap.min .deck-mini{display:inline}
+.deck > p{margin:2px 0 14px;color:var(--dim);font-size:14px}
+.deck-wrap.stuck .deck{box-shadow:0 10px 28px -10px rgba(0,0,0,.65);border-color:var(--amber-dim);padding:12px 18px 6px}
+.deck-wrap.stuck .deck > p,.deck-wrap.stuck .note{display:none}
+.deck-wrap.stuck .sliders{gap:8px 18px}
+.deck-wrap.stuck .ctl label{font-size:12px;margin-bottom:0}
+.deck-wrap.stuck input[type=range]{height:20px}
+.deck-wrap.min .sliders,.deck-wrap.min .deck > p,.deck-wrap.min .note{display:none}
+.deck-wrap.min .deck{padding:10px 18px}
+@media (max-width:600px){
+  .deck-wrap.stuck .sliders{display:flex;overflow-x:auto;padding-bottom:4px}
+  .deck-wrap.stuck .ctl{flex:0 0 160px}
+  .deck-wrap.stuck .deck-mini{font-size:12px}
+}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 22px}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--dim);margin-bottom:2px}
+.ctl .badge{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--amber);height:26px;background:transparent}
+.deck .note{grid-column:1 / -1;font-size:12.5px;color:var(--faint);margin:4px 0 6px}
+
+/* ---------- sections ---------- */
+section{margin:0 0 44px}
+.step{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase}
+section h2{font-family:'Archivo';font-weight:700;font-size:clamp(21px,2.6vw,27px);margin:6px 0 10px;letter-spacing:-.005em}
+section > p{max-width:76ch;color:var(--dim)}
+section > p b, section > p strong{color:var(--text)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+
+/* assumption chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:help}
+.chip:hover{border-color:var(--amber-dim)}
+.chip[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.ledger{margin-top:12px;padding:12px 16px;border-left:2px solid var(--amber);background:var(--panel2);border-radius:0 10px 10px 0;font-size:13.5px;color:var(--dim);max-width:76ch}
+
+/* formula trace */
+.trace{font-family:'IBM Plex Mono',monospace;font-size:clamp(13px,1.9vw,16.5px);line-height:2.15;overflow-x:auto;white-space:nowrap;padding:6px 2px}
+.trace .row{display:block}
+.trace .lhs{color:var(--dim)}
+.trace .num{color:var(--text)}
+.trace .res{color:var(--amber);font-weight:600;font-size:1.08em}
+.trace .ok{color:var(--good);font-weight:600}
+.trace .cm{color:var(--faint);font-size:.85em}
+
+/* stat grid */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat .k{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-family:'IBM Plex Mono',monospace}
+.stat .v{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);font-size:18px;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .v small{color:var(--dim);font-weight:400;font-size:12.5px}
+.stat.hot .v{color:var(--amber)}
+
+/* svg shared */
+svg{display:block;width:100%;height:auto}
+#chartSvg{cursor:ew-resize;touch-action:pan-y}
+#chartSvg [data-v]{cursor:pointer}
+#lineSvg{margin-top:16px}
+.flash{animation:numflash .55s ease-out}
+@keyframes numflash{from{text-shadow:0 0 10px rgba(255,180,84,.95)}to{text-shadow:0 0 0 rgba(255,180,84,0)}}
+.svgcap{font-size:13.5px;color:var(--faint);margin-top:10px}
+text{font-family:'IBM Plex Mono',monospace}
+
+/* phasor panel layout */
+.duo{display:grid;grid-template-columns:minmax(320px,560px) 1fr;gap:26px;align-items:start}
+@media (max-width:780px){.duo{grid-template-columns:1fr}}
+.readouts .stat{margin-bottom:10px}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer}
+.btn:hover{border-color:var(--amber-dim)}
+.btn[aria-pressed="true"]{color:var(--ink);background:var(--amber);border-color:var(--amber);font-weight:600}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:6px}
+
+/* mistakes */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:14px}
+.mcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.mcard h3{margin:0 0 6px;font-family:'Archivo';font-size:15.5px;font-weight:700}
+.mcard code{display:block;font-size:13px;color:var(--dim);margin:6px 0 10px;white-space:nowrap;overflow-x:auto}
+.mcard .got{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:22px;color:var(--text);font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.06em;border-radius:999px;padding:3px 10px;margin-left:8px;vertical-align:middle}
+.tag.high{color:var(--bad);border:1px solid var(--bad)}
+.tag.low{color:var(--phC);border:1px solid var(--phC)}
+.mcard p{font-size:13.5px;color:var(--dim);margin:10px 0 0}
+
+/* history */
+.rail{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 12px;margin-top:12px}
+.era{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:150px}
+.era .y{font-family:'IBM Plex Mono',monospace;color:var(--amber);font-weight:600;font-size:14px}
+.era .kv{font-family:'Archivo';font-weight:700;font-size:18px;margin:2px 0}
+.era .w{font-size:12.5px;color:var(--dim)}
+.era.now{border-color:var(--amber-dim)}
+
+footer{border-top:1px solid var(--line);margin-top:20px;padding-top:22px;color:var(--faint);font-size:13px}
+footer code{color:var(--dim)}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;animation:none!important}
+  #spinBtn{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Power systems · worked example · 50 Hz</div>
+  <h1>The price of 120 kilometres</h1>
+  <p class="dek">A three-phase line on the 275&nbsp;kV backbone delivers <b>300&nbsp;MW</b> at a line-to-line voltage of <b>275&nbsp;kV</b> to a load at <b>unity power factor</b>. The line runs <b>120&nbsp;km</b> and each phase conductor has <b>0.05&nbsp;Ω/km</b>. How much power never arrives? Everything below is live — drag the sliders and watch the algebra, the phasors and the chart move together.</p>
+
+  <div class="strip">
+    <div class="gauge"><div class="k">Line current I_L</div><div class="v"><span id="hI">–</span><span class="u">A</span></div></div>
+    <div class="gauge"><div class="k">Conductor losses</div><div class="v"><span id="hLoss">–</span><span class="u">MW</span></div></div>
+    <div class="gauge"><div class="k">Of delivered power</div><div class="v"><span id="hPct">–</span><span class="u">%</span></div></div>
+  </div>
+</header>
+
+<main>
+
+  <div id="deckSentinel" aria-hidden="true"></div>
+  <div class="deck-wrap" id="deckWrap">
+  <div class="deck" aria-label="Controls">
+    <div class="deck-head">
+      <h2>Control deck</h2>
+      <span class="spacer"></span>
+      <span class="deck-mini">P_loss = <b id="dLoss">–</b> MW · <b id="dPct">–</b>%</span>
+      <button class="btn tiny" id="resetBtn">Reset question</button>
+      <button class="btn tiny" id="deckToggle" aria-expanded="true">Hide ▴</button>
+    </div>
+    <p>Six numbers define the whole problem; the deck stays pinned while you scroll, so every panel below can be poked from wherever you're standing.</p>
+    <div class="sliders">
+      <div class="ctl"><label>Delivered power P <span class="badge" id="bP">300 MW</span></label>
+        <input type="range" id="cP" min="50" max="900" step="10" value="300" aria-label="Delivered power in megawatts"></div>
+      <div class="ctl"><label>Line-to-line V_LL <span class="badge" id="bV">275 kV</span></label>
+        <input type="range" id="cV" min="66" max="550" step="1" value="275" aria-label="Line-to-line voltage in kilovolts"></div>
+      <div class="ctl"><label>Power factor cos φ <span class="badge" id="bPf">1.00</span></label>
+        <input type="range" id="cPf" min="0.70" max="1.00" step="0.01" value="1.00" aria-label="Power factor"></div>
+      <div class="ctl"><label>Line length <span class="badge" id="bL">120 km</span></label>
+        <input type="range" id="cL" min="10" max="300" step="5" value="120" aria-label="Line length in kilometres"></div>
+      <div class="ctl"><label>Resistance r <span class="badge" id="bR">0.050 Ω/km</span></label>
+        <input type="range" id="cR" min="0.02" max="0.12" step="0.005" value="0.05" aria-label="Resistance per kilometre"></div>
+      <div class="ctl"><label>Reactance x_L <span class="badge" id="bXl">0.32 Ω/km</span></label>
+        <input type="range" id="cXl" min="0" max="0.45" step="0.01" value="0.32" aria-label="Series reactance per kilometre"></div>
+      <div class="note">P and V_LL are receiving-end quantities. r is the 50&nbsp;Hz value at operating temperature (skin effect and heat both raise it). x_L drives the walk-the-line panel only — losses use R alone, because reactance dissipates nothing.</div>
+    </div>
+  </div>
+  </div>
+
+  <section id="assume">
+    <div class="step">Step 0 · The assumption ledger</div>
+    <h2>Say the fine print out loud</h2>
+    <p>Every formula that follows rests on these. State them before computing — the point of a mental model is knowing when it applies. Tap a chip to unfold its fine print.</p>
+    <div class="chips">
+      <span class="chip" data-d="Equal magnitudes, exactly 120° apart, identical impedances. This is what licenses per-phase analysis and makes the neutral current zero.">balanced · three-wire</span>
+      <span class="chip" data-d="Phasors are RMS values of 50 Hz sinusoids. No harmonics — with distortion, cos φ is only the displacement power factor.">sinusoidal · RMS · 50 Hz</span>
+      <span class="chip" data-d="'Delivers 300 MW at 275 kV to a load' pins both numbers to the receiving end. The same current flows the whole length once shunt paths are ignored.">P, V at receiving end</span>
+      <span class="chip" data-d="φ is the angle between element voltage and element current — not between V_LL and I_L, which differ by an extra 30°.">φ = angle(V_ph, I_ph)</span>
+      <span class="chip" data-d="Series reactance X shifts phase and exchanges vars but dissipates nothing; it changes the sending-end voltage, not the losses. Shunt charging is excluded by the problem.">only R dissipates</span>
+      <span class="chip" data-d="No neutral conductor exists on the line, and balance means no return current anyway. The earthwire on the towers is lightning shielding and stays essentially idle.">no neutral-conductor loss</span>
+      <span class="chip" data-d="I²R in the phase conductors only. Real lines add corona and insulator leakage — small in fair weather at this voltage.">conductor I²R only</span>
+    </div>
+    <div class="ledger" id="ledger" hidden></div>
+  </section>
+
+  <section id="perphase">
+    <div class="step">Step 1 · One phase tells the whole story</div>
+    <h2>The per-phase circuit — with the wire we don't build</h2>
+    <p>Balance lets you collapse three phases into one single-phase circuit between a line and the <b>neutral reference</b>. Its source is V_LN = V_LL/√3, it carries one third of the power, and its return rail is the neutral — which carries no current, which is exactly why the real line has three wires, not four.</p>
+    <div class="panel">
+      <svg viewBox="0 0 660 210" role="img" aria-label="Per-phase equivalent circuit: source, series resistance, load, dashed neutral return">
+        <!-- top rail -->
+        <line x1="96" y1="70" x2="205" y2="70" stroke="var(--dim)" stroke-width="2"/>
+        <line x1="325" y1="70" x2="430" y2="70" stroke="var(--dim)" stroke-width="2"/>
+        <!-- source -->
+        <circle cx="70" cy="98" r="27" fill="none" stroke="var(--phA)" stroke-width="2"/>
+        <path d="M56,98 q7,-13 14,0 q7,13 14,0" fill="none" stroke="var(--phA)" stroke-width="2"/>
+        <line x1="70" y1="71" x2="70" y2="70" stroke="var(--dim)" stroke-width="2"/>
+        <line x1="70" y1="70" x2="96" y2="70" stroke="var(--dim)" stroke-width="2"/>
+        <line x1="70" y1="125" x2="70" y2="152" stroke="var(--dim)" stroke-width="2"/>
+        <text x="70" y="176" font-size="12" fill="var(--text)" text-anchor="middle">V_LN = <tspan id="pcVln" fill="var(--amber)">158.8</tspan> kV ∠0°</text>
+        <!-- resistor zigzag -->
+        <polyline points="205,70 213,56 229,84 245,56 261,84 277,56 293,84 309,56 317,70 325,70" fill="none" stroke="var(--amber)" stroke-width="2.5"/>
+        <text x="265" y="40" font-size="12.5" fill="var(--text)" text-anchor="middle">R = <tspan id="pcR" fill="var(--amber)">6.00</tspan> Ω  <tspan fill="var(--faint)" font-size="10.5">(<tspan id="pcRcalc">0.050 × 120 km</tspan>)</tspan></text>
+        <text x="265" y="108" font-size="11.5" fill="var(--dim)" text-anchor="middle">I·R drop = <tspan id="pcDrop">3.78</tspan> kV  (<tspan id="pcDropPct">2.4</tspan>% of V_LN)</text>
+        <!-- current arrow -->
+        <line x1="120" y1="55" x2="168" y2="55" stroke="var(--phC)" stroke-width="2"/>
+        <polygon points="168,55 158,50 158,60" fill="var(--phC)"/>
+        <text x="143" y="30" font-size="12" fill="var(--phC)" text-anchor="middle">I = <tspan id="pcI">629.8</tspan> A</text>
+        <!-- load -->
+        <rect x="430" y="55" width="150" height="86" rx="8" fill="var(--panel2)" stroke="var(--line)"/>
+        <text x="505" y="86" font-size="12" fill="var(--text)" text-anchor="middle">load  ⅓ × P</text>
+        <text x="505" y="106" font-size="12.5" fill="var(--amber)" text-anchor="middle"><tspan id="pcPph">100.0</tspan> MW · pf <tspan id="pcPf">1.00</tspan></text>
+        <line x1="505" y1="141" x2="505" y2="152" stroke="var(--dim)" stroke-width="2"/>
+        <!-- neutral rail -->
+        <line x1="70" y1="152" x2="505" y2="152" stroke="var(--faint)" stroke-width="1.6" stroke-dasharray="7 6"/>
+        <text x="288" y="196" font-size="11.5" fill="var(--faint)" text-anchor="middle">neutral reference — carries 0 A when balanced: the wire the line doesn't build</text>
+        <!-- loss badge -->
+        <text x="265" y="22" font-size="12" fill="var(--good)" text-anchor="middle">this conductor burns I²R = <tspan id="pcLossOne">2.38</tspan> MW  →  ×3 phases = <tspan id="pcLossAll" font-weight="600">7.14</tspan> MW</text>
+      </svg>
+      <div class="svgcap">Sanity check the current here: I = (P/3) / (V_LN · cos φ). If you pasted V_LL into this circuit instead, you'd get a current √3 too small — and losses exactly 3× too small. That factor of 3 is a diagnostic fingerprint.</div>
+    </div>
+  </section>
+
+  <section id="phasors">
+    <div class="step">Step 2 · Where √3 and the 30° live</div>
+    <h2>The phasor playground</h2>
+    <p>V_LL and V_LN are two simultaneous measurements on one system — the chord and the radius of the same triangle. Drag cos φ in the pinned deck and watch the currents swing away from their phase voltages by φ, while the angle to V_ab is always <b>30° + φ</b>: the trap that ruins oscilloscope readings.</p>
+    <div class="panel duo">
+      <div>
+        <svg id="phasorSvg" viewBox="0 0 450 420" role="img" aria-label="Rotating phasor diagram of phase voltages, line-to-line voltage and line currents">
+          <defs>
+            <marker id="mA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phA)"/></marker>
+            <marker id="mB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phB)"/></marker>
+            <marker id="mC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phC)"/></marker>
+            <marker id="mG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/></marker>
+          </defs>
+          <circle cx="225" cy="210" r="112" fill="none" stroke="var(--line)" stroke-width="1"/>
+          <circle cx="225" cy="210" r="3" fill="var(--dim)"/>
+          <!-- chord construction -->
+          <line id="chord" x1="0" y1="0" x2="0" y2="0" stroke="var(--amber)" stroke-width="1.6" stroke-dasharray="5 5" opacity=".8"/>
+          <!-- voltage phasors -->
+          <line id="va" x1="225" y1="210" x2="0" y2="0" stroke="var(--phA)" stroke-width="2.6" marker-end="url(#mA)"/>
+          <line id="vb" x1="225" y1="210" x2="0" y2="0" stroke="var(--phB)" stroke-width="2.6" marker-end="url(#mB)"/>
+          <line id="vc" x1="225" y1="210" x2="0" y2="0" stroke="var(--phC)" stroke-width="2.6" marker-end="url(#mC)"/>
+          <line id="vab" x1="225" y1="210" x2="0" y2="0" stroke="var(--amber)" stroke-width="2.6" marker-end="url(#mG)"/>
+          <!-- current phasors -->
+          <line id="ia" x1="225" y1="210" x2="0" y2="0" stroke="var(--phA)" stroke-width="1.6" stroke-dasharray="3 4" marker-end="url(#mA)"/>
+          <line id="ib" x1="225" y1="210" x2="0" y2="0" stroke="var(--phB)" stroke-width="1.6" stroke-dasharray="3 4" marker-end="url(#mB)"/>
+          <line id="ic" x1="225" y1="210" x2="0" y2="0" stroke="var(--phC)" stroke-width="1.6" stroke-dasharray="3 4" marker-end="url(#mC)"/>
+          <!-- angle arcs -->
+          <path id="arc30" d="" fill="none" stroke="var(--amber)" stroke-width="1.3"/>
+          <path id="arcPhi" d="" fill="none" stroke="var(--phC)" stroke-width="1.3"/>
+          <!-- labels -->
+          <text id="lva" font-size="13" fill="var(--phA)" text-anchor="middle">V_a</text>
+          <text id="lvb" font-size="13" fill="var(--phB)" text-anchor="middle">V_b</text>
+          <text id="lvc" font-size="13" fill="var(--phC)" text-anchor="middle">V_c</text>
+          <text id="lvab" font-size="13" fill="var(--amber)" text-anchor="middle">V_ab = √3·V_LN ∠+30°</text>
+          <text id="lia" font-size="12" fill="var(--phA)" text-anchor="middle">I_a</text>
+          <text id="t30" font-size="11" fill="var(--amber)" text-anchor="middle">30°</text>
+          <text id="tphi" font-size="11" fill="var(--phC)" text-anchor="middle">φ</text>
+        </svg>
+        <div class="svgcap">Solid = voltages to scale (V_LN radius, V_ab chord). Dashed = currents, symbolic length. Dashed amber chord: tip of V_b to tip of V_a — the same vector as V_ab = V_a − V_b, length √3, leading V_a by 30° (abc sequence; acb would lag).</div>
+      </div>
+      <div class="readouts">
+        <div class="stat"><div class="k">|V_ab| / |V_an|</div><div class="v">√3 = 1.732 <small>pure geometry — never rewiring</small></div></div>
+        <div class="stat"><div class="k">φ = angle(V_a, I_a)</div><div class="v"><span id="phiOut">0.0</span>° <small>the angle in cos φ</small></div></div>
+        <div class="stat hot"><div class="k">angle(V_ab, I_a) — the scope trap</div><div class="v">30° + φ = <span id="angOut">30.0</span>°</div></div>
+        <div class="stat"><div class="k">neutral current (balanced)</div><div class="v">I_a + I_b + I_c = 0</div></div>
+        <button class="btn" id="spinBtn" aria-pressed="false">▶ Spin at "50 Hz" (slowed ≈150×)</button>
+        <div class="svgcap">Phase colours follow the old Australian red–white–blue code. Everything rotates together at 50 rev/s; a phasor diagram is one frozen frame.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="walk">
+    <div class="step">Step 3 · Where you stand changes what you read</div>
+    <h2>Walk the line — power factor is a property of a cross-section</h2>
+    <p>On a series line the current phasor is the same everywhere, so as you walk from the load toward the source all the movement is in <b>V(x) = V_R + I·(r + j·x_L)·x</b>. The resistive drop stretches V along I; the reactive drop is perpendicular and <b>rotates</b> it. The local angle φ(x) between V(x) and I — and with it the local power factor — drifts with position: your unity-pf load, read from 120 km away, is not unity any more.</p>
+    <div class="panel">
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:8px">
+        <div class="ctl" style="flex:1 1 260px;max-width:440px">
+          <label>Measurement position x <span class="badge" id="bX">120 km from load</span></label>
+          <input type="range" id="cX" min="0" max="120" step="1" value="120" aria-label="Measurement position along the line in kilometres from the load">
+        </div>
+        <button class="btn tiny" id="magBtn" aria-pressed="false">Magnify drops ×4</button>
+      </div>
+      <div class="duo">
+        <div>
+          <svg id="walkSvg" viewBox="0 0 460 300" role="img" aria-label="Phasor construction of the local voltage from receiving-end voltage plus resistive and reactive drops">
+            <defs>
+              <marker id="wG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/></marker>
+              <marker id="wW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+              <marker id="wT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--text)"/></marker>
+            </defs>
+            <g id="walkG"></g>
+          </svg>
+          <div class="svgcap">V_R held as reference. Green: the I·R drop, parallel to I. Blue: the j·I·X drop, perpendicular — the piece that rotates V and drags the local pf off unity. The magnifier stretches the drawn drops (and therefore the drawn angles); every number stays true.</div>
+        </div>
+        <div class="readouts">
+          <div class="stat"><div class="k">Local line-to-line |V(x)|</div><div class="v" id="wVll">–</div></div>
+          <div class="stat"><div class="k">V(x) leads V_R by δ(x)</div><div class="v" id="wDel">–</div></div>
+          <div class="stat hot"><div class="k">Local φ(x) = ∠(V(x), I)</div><div class="v" id="wPhi">–</div></div>
+          <div class="stat hot"><div class="k">Local power factor cos φ(x)</div><div class="v" id="wPf">–</div></div>
+          <div class="stat"><div class="k">P through this cross-section</div><div class="v" id="wP">–</div></div>
+          <div class="stat"><div class="k">Q through this cross-section</div><div class="v" id="wQ">–</div></div>
+        </div>
+      </div>
+      <svg id="lineSvg" viewBox="0 0 660 150" role="img" aria-label="Profiles of voltage magnitude and local power factor along the line"></svg>
+      <div class="svgcap">Series model only, exactly as the problem set it: charging current ignored. On a real line the shunt capacitance generates vars that push the drift the other way — below surge-impedance loading the sending current can even <em>lead</em>. Slide x_L to zero at unity pf and the rotation vanishes: with I along V_R, a pure-R line only stretches V. Off unity pf even the I·R drop twists V a touch — it lies along I, not along V_R.</div>
+    </div>
+  </section>
+
+  <section id="solve">
+    <div class="step">Step 4 · The computation, with the numbers substituting live</div>
+    <h2>Two lines of algebra — and the count 3, not the geometry √3</h2>
+    <p>First the current from terminal quantities (connection-agnostic: any balanced delta is indistinguishable from its wye equivalent from outside). Then the losses: <b>three conductors, each dissipating I²R</b>. The 3 counts copper paths; the √3 is triangle geometry. They are different animals that happen to be relatives.</p>
+    <div class="panel">
+      <div class="trace" id="trace"></div>
+      <div class="stats">
+        <div class="stat"><div class="k">R per phase</div><div class="v" id="sR">–</div></div>
+        <div class="stat"><div class="k">Line current</div><div class="v" id="sI">–</div></div>
+        <div class="stat hot"><div class="k">Total losses</div><div class="v" id="sLoss">–</div></div>
+        <div class="stat hot"><div class="k">Loss / delivered</div><div class="v" id="sPct">–</div></div>
+        <div class="stat"><div class="k">Sending end supplies</div><div class="v" id="sSend">–</div></div>
+        <div class="stat"><div class="k">Transmission efficiency</div><div class="v" id="sEff">–</div></div>
+        <div class="stat"><div class="k">Energy, if run all year</div><div class="v" id="sYear">–</div></div>
+        <div class="stat"><div class="k">Illustrative cost @ A$100/MWh</div><div class="v" id="sCost">–</div></div>
+      </div>
+      <div class="svgcap">The annual figures assume this loading 24/7 — real loss load factors are lower, but the order of magnitude is the lesson: percent-level losses on one circuit are gigawatt-hours and millions of dollars. A curio worth showing: at unity pf, the loss percentage equals the resistive-drop percentage (both are I·R/V_LN) — a free self-check.</div>
+    </div>
+  </section>
+
+  <section id="cliff">
+    <div class="step">Step 5 · Substitute back — the identity that explains the grid</div>
+    <h2>P_loss = R·P² / (V_LL·cos φ)² — the loss cliff</h2>
+    <p>Eliminate the current and the whole history of transmission falls out of one line: for fixed delivered power, <b>losses scale as 1/V²</b> and <b>1/pf²</b>. Double the voltage, quarter the loss. Flip to log–log and the law becomes a straight line of slope −2 — power laws always do.</p>
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+        <div class="svgcap" id="doubleNote" style="margin:0"></div>
+        <button class="btn" id="logBtn" aria-pressed="false">Show log–log</button>
+      </div>
+      <svg id="chartSvg" viewBox="0 0 760 420" role="img" aria-label="Losses versus line-to-line voltage for the current sliders"></svg>
+      <div class="svgcap"><b style="color:var(--dim)">The chart is a control:</b> drag anywhere on the plot to slide the operating voltage, or tap a dot to snap to a standard level — the whole page follows. Dots mark standard Australian voltage levels for the <em>same</em> conductor and load — left of the wall the model (and the conductor) melts; the trend is the point. In reality higher-voltage lines also carry heavier bundles, so real losses fall even faster than 1/V².</div>
+    </div>
+  </section>
+
+  <section id="mistakes">
+    <div class="step">Step 6 · Diagnostics</div>
+    <h2>Three ways to be wrong by exactly 3 (or √3)</h2>
+    <p>These aren't random errors — each has a fingerprint. If two students' answers differ by exactly 3 or √3, hunt the V_LL/V_LN swap or the conductor count. The cards recompute from the sliders.</p>
+    <div class="mgrid">
+      <div class="mcard">
+        <h3>The single-phase paste</h3>
+        <code>I = P / (V_LL · cos φ) = <span id="mAI">–</span> A<br>P_loss = 3·I²·R = <span class="mono" id="mALc">–</span></code>
+        <span class="got" id="mAL">–</span><span class="tag high">×3 too high</span>
+        <p>Treated 275 kV as if it sat across each element carrying the full power. The missing √3 in the current becomes a clean factor of 3 in the loss.</p>
+      </div>
+      <div class="mcard">
+        <h3>The lonely conductor</h3>
+        <code>P_loss = I²·R  (correct I, no 3)</code>
+        <span class="got" id="mBL">–</span><span class="tag low">×3 too low</span>
+        <p>Computed one conductor of three. Same fingerprint as pasting V_LL into the per-phase circuit — which is why the factor alone doesn't tell you <em>which</em> mistake was made.</p>
+      </div>
+      <div class="mcard">
+        <h3>The geometry impostor</h3>
+        <code>P_loss = √3·I²·R</code>
+        <span class="got" id="mCL">–</span><span class="tag low">×√3 too low</span>
+        <p>The triangle's √3 crept into the conductor count's seat. √3 relates two voltage measurements; 3 counts wires. Say both out loud when you write the formula.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="history">
+    <div class="step">Coda · Why the ladder exists</div>
+    <h2>Every rung is a factor of 1/V²</h2>
+    <p>The identity above is not just an exam formula — it is the selection pressure that built the grid. Each generation of engineers climbed one rung of voltage to push the same power with a quarter of the burn (and each rung demanded earthed-wye insulation economics).</p>
+    <div class="rail">
+      <div class="era"><div class="y">1889–91</div><div class="kv">10 kV</div><div class="w">Deptford, London — Ferranti gambles on high-voltage AC to the city</div></div>
+      <div class="era"><div class="y">1923</div><div class="kv">220 kV</div><div class="w">Pit River, California — the first 220 kV class lines</div></div>
+      <div class="era"><div class="y">1936</div><div class="kv">287 kV</div><div class="w">Hoover Dam → Los Angeles, ~430 km</div></div>
+      <div class="era"><div class="y">1952</div><div class="kv">380 kV</div><div class="w">Harspränget, Sweden — Europe goes EHV</div></div>
+      <div class="era"><div class="y">1965</div><div class="kv">735 kV</div><div class="w">Hydro-Québec — hydropower a thousand km from the load</div></div>
+      <div class="era now"><div class="y">today</div><div class="kv">275 kV</div><div class="w">the Queensland backbone this problem is set on</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b style="color:var(--dim)">The whole derivation on one line.</b><br>
+    <code>P = √3·V_LL·I_L·cos φ  ⇒  I_L = P/(√3·V_LL·cos φ)  ⇒  P_loss = 3·I_L²·R = R·P²/(V_LL·cos φ)²</code></p>
+    <p>Scope honestly stated: with only R given, the sending-end <em>voltage</em> is out of reach — a real 275 kV line has X ≈ 0.3–0.4 Ω/km ≫ R, and X dominates regulation while dissipating nothing. Losses never needed it. Built as a teaching aid; all quantities recompute in the browser, nothing is stored.</p>
+  </footer>
+
+</main>
+
+<script>
+//JS-START
+(function(){
+'use strict';
+var $ = function(id){ return document.getElementById(id); };
+var SQ3 = Math.sqrt(3);
+var S = { P:300e6, V:275e3, pf:1.00, L:120, r:0.05, xl:0.32, x:120, mag:false, spin:false, log:false, delta:0, phi:0 };
+
+function nf(x,d){ return x.toLocaleString('en-AU',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function nfi(x){ return x.toLocaleString('en-AU',{maximumFractionDigits:0}); }
+function mw(x,d){ var v=x/1e6; d=(d===undefined?2:d); if(d===2&&v>0&&v<0.005){ d=Math.min(4,1-Math.floor(Math.log10(v)+1e-9)); } return nf(v,d); }
+var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var CH = { l:72, pw:670, log:false };   /* chart mapping cache, refreshed by drawChart */
+function up(id,txt){
+  var e=$(id);
+  if(e.textContent!==txt){
+    e.textContent=txt;
+    if(!RM){ e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); }
+  }
+}
+
+function derive(){
+  var R = S.r*S.L;
+  var I = S.P/(SQ3*S.V*S.pf);
+  var loss = 3*I*I*R;
+  var VLN = S.V/SQ3;
+  return { R:R, I:I, loss:loss, VLN:VLN,
+    pct:100*loss/S.P, Psend:S.P+loss, eff:100*S.P/(S.P+loss),
+    drop:I*R, phi:Math.acos(Math.min(1,S.pf))*180/Math.PI,
+    yearGWh: loss*8760/1e9 };
+}
+
+/* ---------- phasor ---------- */
+var CX=225, CY=210, RV=112, RI=72;
+function pt(len,deg){ var a=deg*Math.PI/180; return [CX+len*Math.cos(a), CY-len*Math.sin(a)]; }
+function setLine(id,len,deg){ var p=pt(len,deg); var e=$(id); e.setAttribute('x2',p[0].toFixed(1)); e.setAttribute('y2',p[1].toFixed(1)); }
+function setText(id,len,deg){ var p=pt(len,deg); var e=$(id); e.setAttribute('x',p[0].toFixed(1)); e.setAttribute('y',(p[1]+4).toFixed(1)); }
+function setTextClamp(id,len,deg,hw){ var p=pt(len,deg); var e=$(id); e.setAttribute('x',Math.min(450-hw,Math.max(hw,p[0])).toFixed(1)); e.setAttribute('y',Math.min(410,Math.max(14,p[1]+4)).toFixed(1)); }
+function arcPath(r,a0,a1){
+  var n=16, d='';
+  for(var k=0;k<=n;k++){ var p=pt(r, a0+(a1-a0)*k/n); d += (k===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1); }
+  return d;
+}
+function drawPhasor(){
+  var d=S.delta, phi=S.phi;
+  setLine('va',RV,d); setLine('vb',RV,d-120); setLine('vc',RV,d+120);
+  setLine('vab',RV*SQ3,d+30);
+  var pb=pt(RV,d-120), pa=pt(RV,d);
+  var ch=$('chord'); ch.setAttribute('x1',pb[0]); ch.setAttribute('y1',pb[1]); ch.setAttribute('x2',pa[0]); ch.setAttribute('y2',pa[1]);
+  setLine('ia',RI,d-phi); setLine('ib',RI,d-120-phi); setLine('ic',RI,d+120-phi);
+  setText('lva',RV+18,d); setText('lvb',RV+18,d-120); setText('lvc',RV+18,d+120);
+  setTextClamp('lvab',RV*SQ3+14,d+30,82);
+  setText('lia',RI+16,d-phi);
+  $('arc30').setAttribute('d', arcPath(58,d,d+30));
+  setText('t30',72,d+15);
+  if(phi>1){ $('arcPhi').setAttribute('d', arcPath(44,d-phi,d)); setText('tphi',56,d-phi/2); $('arcPhi').style.display=''; $('tphi').style.display=''; }
+  else { $('arcPhi').style.display='none'; $('tphi').style.display='none'; }
+}
+
+/* ---------- chart ---------- */
+function niceStep(x){
+  var p=Math.pow(10,Math.floor(Math.log10(x))), f=x/p;
+  return (f<=1?1:f<=2?2:f<=5?5:10)*p;
+}
+function tickDec(mw){ return Math.min(4,Math.max(1,-Math.floor(Math.log10(mw)+1e-9))); }
+function fmtMW(w,stepW){ return w>=1e7 ? nfi(w/1e6) : nf(w/1e6,tickDec(stepW/1e6)); }
+function fmtVal(w){ return w>=1e7 ? nfi(w/1e6) : nf(w/1e6,Math.min(4,Math.max(1,1-Math.floor(Math.log10(w/1e6)+1e-9)))); }
+function drawChart(d){
+  var W=760,H=420,M={l:72,r:18,t:26,b:50},pw=W-M.l-M.r,ph=H-M.t-M.b;
+  var Vmin=66e3,Vmax=550e3;
+  function lossAt(V){ return d.R*S.P*S.P/(V*V*S.pf*S.pf); }
+  var X,Y,xTicks,yTicks=[],k,v;
+  if(S.log){
+    var lx0=Math.log(Vmin),lx1=Math.log(Vmax);
+    X=function(V){ return M.l+pw*(Math.log(V)-lx0)/(lx1-lx0); };
+    var y0=lossAt(Vmax)/1.5, y1=lossAt(Vmin)*1.5;
+    var ly0=Math.log(y0),ly1=Math.log(y1);
+    Y=function(L){ return M.t+ph-ph*(Math.log(L)-ly0)/(ly1-ly0); };
+    xTicks=[66e3,100e3,150e3,220e3,330e3,500e3];
+    for(var e=Math.floor(Math.log10(y0)); e<=Math.ceil(Math.log10(y1)); e++){
+      [1,2,5].forEach(function(m){ var t=m*Math.pow(10,e); if(t>=y0&&t<=y1) yTicks.push(t); });
+    }
+  } else {
+    X=function(V){ return M.l+pw*(V-Vmin)/(Vmax-Vmin); };
+    var ymax=lossAt(Vmin)*1.05;
+    Y=function(L){ return M.t+ph-ph*(L/ymax); };
+    xTicks=[100e3,200e3,300e3,400e3,500e3];
+    var st=niceStep(ymax/4);
+    for(v=st; v<=ymax; v+=st) yTicks.push(v);
+  }
+  var s='';
+  // grid + ticks
+  yTicks.forEach(function(t){
+    var y=Y(t);
+    s+='<line x1="'+M.l+'" y1="'+y+'" x2="'+(W-M.r)+'" y2="'+y+'" stroke="var(--gridline)" stroke-width="1"/>';
+    s+='<text x="'+(M.l-8)+'" y="'+(y+4)+'" font-size="11" fill="var(--faint)" text-anchor="end">'+fmtMW(t,S.log?t:st)+'</text>';
+  });
+  xTicks.forEach(function(t){
+    var x=X(t);
+    s+='<line x1="'+x+'" y1="'+M.t+'" x2="'+x+'" y2="'+(H-M.b)+'" stroke="var(--gridline)" stroke-width="1"/>';
+    s+='<text x="'+x+'" y="'+(H-M.b+18)+'" font-size="11" fill="var(--faint)" text-anchor="middle">'+nfi(t/1e3)+'</text>';
+  });
+  // axes
+  s+='<line x1="'+M.l+'" y1="'+M.t+'" x2="'+M.l+'" y2="'+(H-M.b)+'" stroke="var(--line)" stroke-width="1.5"/>';
+  s+='<line x1="'+M.l+'" y1="'+(H-M.b)+'" x2="'+(W-M.r)+'" y2="'+(H-M.b)+'" stroke="var(--line)" stroke-width="1.5"/>';
+  s+='<text x="'+(W-M.r)+'" y="'+(H-10)+'" font-size="11.5" fill="var(--dim)" text-anchor="end">V_LL  (kV)</text>';
+  s+='<text x="'+M.l+'" y="14" font-size="11.5" fill="var(--dim)">losses (MW) — same conductor, same delivered P</text>';
+  // curve
+  var path='',n=220;
+  for(k=0;k<=n;k++){
+    var V=S.log ? Math.exp(Math.log(Vmin)+(Math.log(Vmax)-Math.log(Vmin))*k/n) : Vmin+(Vmax-Vmin)*k/n;
+    var L=lossAt(V), y=Y(L);
+    if(!S.log && y<M.t) y=M.t;
+    path+=(k===0?'M':'L')+X(V).toFixed(1)+','+y.toFixed(1);
+  }
+  s+='<path d="'+path+'" fill="none" stroke="var(--amber)" stroke-width="2.4"/>';
+  // slope annotation
+  if(S.log){
+    var Vm=170e3;
+    s+='<text x="'+(X(Vm)+10)+'" y="'+(Y(lossAt(Vm))-12)+'" font-size="12" fill="var(--good)">slope −2  ⇔  loss ∝ V⁻²</text>';
+  }
+  // standard-level dots (tap to snap)
+  var std=[66e3,110e3,132e3,220e3,275e3,330e3,500e3];
+  std.forEach(function(V,i){
+    var L=lossAt(V), x=X(V), y=Y(L);
+    if(y<M.t-2) return;
+    s+='<circle cx="'+x+'" cy="'+y+'" r="4" fill="var(--panel)" stroke="var(--phC)" stroke-width="2"/>';
+    var ly=y-(i%2? 12:26);
+    if(ly<M.t+10) ly=y+18+(i%2?0:12);
+    s+='<text x="'+x+'" y="'+ly+'" font-size="10.5" fill="var(--dim)" text-anchor="middle">'+nfi(V/1e3)+' · '+fmtVal(L)+'</text>';
+    s+='<circle cx="'+x+'" cy="'+y+'" r="11" fill="transparent" data-v="'+V+'"><title>snap to '+nfi(V/1e3)+' kV</title></circle>';
+  });
+  // current operating point + label
+  var LV=lossAt(S.V), xo=X(S.V), yo=Y(LV), yop=Math.max(yo,M.t);
+  s+='<line x1="'+xo+'" y1="'+M.t+'" x2="'+xo+'" y2="'+(H-M.b)+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="4 5" opacity=".7"/>';
+  s+='<circle cx="'+xo+'" cy="'+yop+'" r="5.5" fill="var(--amber)"/>';
+  var flip = xo > (M.l+pw*0.62);
+  s+='<text x="'+(xo+(flip?-11:11))+'" y="'+Math.max(yop-12,M.t+12)+'" font-size="11.5" fill="var(--amber)" text-anchor="'+(flip?'end':'start')+'">'+nfi(S.V/1e3)+' kV → '+fmtVal(LV)+' MW</text>';
+  CH.l=M.l; CH.pw=pw; CH.log=S.log;
+  $('chartSvg').innerHTML=s;
+
+  var b, msg;
+  if(2*S.V<=Vmax){ b=2*S.V; msg='double it'; } else { b=S.V/2; msg='halve it'; }
+  var fac = b>S.V ? '×¼ the loss' : '×4 the loss';
+  $('doubleNote').innerHTML='At <b style="color:var(--amber)">'+nfi(S.V/1e3)+' kV</b>: '+mw(lossAt(S.V))+' MW.&nbsp; '
+    +msg+' → <b style="color:var(--amber)">'+nfi(b/1e3)+' kV</b>: '+mw(lossAt(b))+' MW &nbsp;('+fac+').';
+}
+
+/* ---------- walk the line ---------- */
+function drawWalk(d){
+  var ph=Math.acos(Math.min(1,S.pf));                 // load angle, rad, lagging
+  var I=d.I, Ire=I*Math.cos(ph), Iim=-I*Math.sin(ph); // I = I∠−φ with V_R as reference
+  function Vat(xx){                                   // per-phase V(x) = V_R + I·(r+jx_L)·x
+    var Rx=S.r*xx, Xx=S.xl*xx;
+    var re=d.VLN + Ire*Rx - Iim*Xx;
+    var im=Iim*Rx + Ire*Xx;
+    return {re:re, im:im, mag:Math.hypot(re,im), ang:Math.atan2(im,re)};
+  }
+  var Vx=Vat(S.x), phx=Vx.ang+ph, pfx=Math.cos(phx);
+  var Px=S.P + 3*I*I*S.r*S.x, Qx=S.P*Math.tan(ph) + 3*I*I*S.xl*S.x;
+
+  up('wVll', nf(SQ3*Vx.mag/1e3,1)+' kV');
+  up('wDel', nf(Vx.ang*180/Math.PI,2)+'°');
+  up('wPhi', nf(phx*180/Math.PI,2)+'°');
+  up('wPf',  nf(pfx,3)+(phx>0.002?' lag':(phx<-0.002?' lead':'')));
+  up('wP',   mw(Px,1)+' MW');
+  up('wQ',   nf(Qx/1e6,1)+' MVAr');
+
+  /* --- phasor construction pane --- */
+  var m=S.mag?4:1;
+  var dRe=Vx.re-d.VLN, dIm=Vx.im;                     // true drop vector
+  var eRe=d.VLN+m*dRe, eIm=m*dIm;                     // displayed V(x) tip
+  var ext=Math.max(Math.hypot(eRe,eIm), d.VLN);
+  var k=Math.min(330/ext, 160/Math.max(Math.abs(eIm),1));
+  var OX=58, OY=200;
+  function P2(re,im){ return (OX+k*re).toFixed(1)+','+(OY-k*im).toFixed(1); }
+  var g='';
+  g+='<line x1="18" y1="'+OY+'" x2="445" y2="'+OY+'" stroke="var(--gridline)" stroke-width="1"/>';
+  // V_R (reference)
+  g+='<line x1="'+OX+'" y1="'+OY+'" x2="'+(OX+k*d.VLN).toFixed(1)+'" y2="'+OY+'" stroke="var(--dim)" stroke-width="2.2" marker-end="url(#wW)"/>';
+  g+='<text x="'+(OX+k*d.VLN*0.5).toFixed(1)+'" y="'+(OY+18)+'" font-size="12" fill="var(--dim)" text-anchor="middle">V_R  (load end, reference)</text>';
+  // I at −φ
+  var ix=OX+72*Math.cos(ph), iy=OY+72*Math.sin(ph);
+  g+='<line x1="'+OX+'" y1="'+OY+'" x2="'+ix.toFixed(1)+'" y2="'+iy.toFixed(1)+'" stroke="var(--text)" stroke-width="1.6" stroke-dasharray="3 4" marker-end="url(#wT)"/>';
+  g+='<text x="'+(ix+12).toFixed(1)+'" y="'+(iy+6).toFixed(1)+'" font-size="12" fill="var(--text)">I</text>';
+  // drop construction: A = I·R (∥ I), then B = j·I·X (⊥ I)
+  var Rx=S.r*S.x, Xx=S.xl*S.x;
+  var aRe=Ire*Rx, aIm=Iim*Rx, bRe=-Iim*Xx, bIm=Ire*Xx;
+  var t0=[d.VLN,0], t1=[d.VLN+m*aRe, m*aIm], t2=[eRe,eIm];
+  if(S.x>0){
+    g+='<line x1="'+P2(t0[0],t0[1]).replace(',','" y1="')+'" x2="'+P2(t1[0],t1[1]).replace(',','" y2="')+'" stroke="var(--good)" stroke-width="2.6"/>';
+    g+='<line x1="'+P2(t1[0],t1[1]).replace(',','" y1="')+'" x2="'+P2(t2[0],t2[1]).replace(',','" y2="')+'" stroke="var(--phC)" stroke-width="2.6"/>';
+    if(k*m*Math.hypot(aRe,aIm)>14) g+='<text x="'+(OX+k*(t0[0]+t1[0])/2+10).toFixed(1)+'" y="'+(OY-k*(t0[1]+t1[1])/2+14).toFixed(1)+'" font-size="11" fill="var(--good)">I·R</text>';
+    if(k*m*Math.hypot(bRe,bIm)>14) g+='<text x="'+(OX+k*(t1[0]+t2[0])/2+10).toFixed(1)+'" y="'+(OY-k*(t1[1]+t2[1])/2).toFixed(1)+'" font-size="11" fill="var(--phC)">+ j·I·X</text>';
+  }
+  // V(x)
+  g+='<line x1="'+OX+'" y1="'+OY+'" x2="'+P2(eRe,eIm).replace(',','" y2="')+'" stroke="var(--amber)" stroke-width="2.6" marker-end="url(#wG)"/>';
+  var flip=(OX+k*eRe)>330;
+  g+='<text x="'+(OX+k*eRe+(flip?-10:10)).toFixed(1)+'" y="'+(OY-k*eIm-8).toFixed(1)+'" font-size="12.5" fill="var(--amber)" text-anchor="'+(flip?'end':'start')+'">V(x)</text>';
+  // φ(x) arc between I and displayed V(x)
+  var aI=-ph, aV=Math.atan2(eIm,eRe);
+  if(Math.abs(aV-aI)>0.02){
+    var arc=''; for(var q=0;q<=14;q++){ var aa=aI+(aV-aI)*q/14; arc+=(q?'L':'M')+(OX+46*Math.cos(aa)).toFixed(1)+','+(OY-46*Math.sin(aa)).toFixed(1); }
+    g+='<path d="'+arc+'" fill="none" stroke="var(--amber)" stroke-width="1.3"/>';
+    g+='<text x="'+(OX+62*Math.cos((aI+aV)/2)).toFixed(1)+'" y="'+(OY-62*Math.sin((aI+aV)/2)+4).toFixed(1)+'" font-size="11" fill="var(--amber)">φ(x)</text>';
+  }
+  if(S.mag) g+='<text x="446" y="20" font-size="11" fill="var(--faint)" text-anchor="end">drops drawn ×4</text>';
+  $('walkG').innerHTML=g;
+
+  /* --- profile strip: |V_LL(x)| and pf(x) along the line --- */
+  var N=60, vs=[], ps=[], vmin=1e15, vmax=-1e15, pmin=2, pmax=-2, i, xx;
+  for(i=0;i<=N;i++){
+    xx=S.L*i/N; var Vi=Vat(xx), pfi=Math.cos(Vi.ang+ph), vl=SQ3*Vi.mag;
+    vs.push(vl); ps.push(pfi);
+    if(vl<vmin)vmin=vl; if(vl>vmax)vmax=vl;
+    if(pfi<pmin)pmin=pfi; if(pfi>pmax)pmax=pfi;
+  }
+  if(vmax-vmin<1){vmax=vmin+1;} if(pmax-pmin<1e-4){pmax+=5e-4;pmin-=5e-4;}
+  var X0=80,X1=600;
+  function LX(x_){ return X0+(X1-X0)*x_/S.L; }
+  function VY(v){ return 100-24*(v-vmin)/(vmax-vmin); }
+  function PY(p){ return 140-24*(p-pmin)/(pmax-pmin); }
+  var s='';
+  s+='<line x1="'+X0+'" y1="40" x2="'+X1+'" y2="40" stroke="var(--dim)" stroke-width="2"/>';
+  for(i=1;i<6;i++){ var tx=X0+(X1-X0)*i/6; s+='<line x1="'+tx+'" y1="34" x2="'+tx+'" y2="46" stroke="var(--line)" stroke-width="1.4"/>'; }
+  s+='<rect x="'+(X0-40)+'" y="26" width="30" height="28" rx="4" fill="var(--panel2)" stroke="var(--line)"/><text x="'+(X0-25)+'" y="66" font-size="10.5" fill="var(--dim)" text-anchor="middle">LOAD</text>';
+  s+='<circle cx="'+(X1+22)+'" cy="40" r="12" fill="none" stroke="var(--phA)" stroke-width="2"/><text x="'+(X1+22)+'" y="66" font-size="10.5" fill="var(--dim)" text-anchor="middle">SOURCE</text>';
+  var mx=LX(S.x);
+  s+='<polygon points="'+mx+',30 '+(mx-7)+',18 '+(mx+7)+',18" fill="var(--amber)"/>';
+  var pv='',pp='';
+  for(i=0;i<=N;i++){ xx=S.L*i/N; pv+=(i?' ':'')+LX(xx).toFixed(1)+','+VY(vs[i]).toFixed(1); pp+=(i?' ':'')+LX(xx).toFixed(1)+','+PY(ps[i]).toFixed(1); }
+  s+='<polyline points="'+pv+'" fill="none" stroke="var(--amber)" stroke-width="2"/>';
+  s+='<polyline points="'+pp+'" fill="none" stroke="var(--phC)" stroke-width="2"/>';
+  s+='<text x="'+(X0-8)+'" y="'+(VY(vs[0])+4)+'" font-size="11" fill="var(--amber)" text-anchor="end">V_LL</text>';
+  s+='<text x="'+(X0-8)+'" y="'+(PY(ps[0])+4)+'" font-size="11" fill="var(--phC)" text-anchor="end">pf</text>';
+  var vI=Math.round(N*S.x/S.L), fl=mx>X0+(X1-X0)*0.72;
+  s+='<circle cx="'+mx+'" cy="'+VY(vs[vI]).toFixed(1)+'" r="4" fill="var(--amber)"/>';
+  s+='<text x="'+(mx+(fl?-8:8))+'" y="'+(VY(vs[vI])-7).toFixed(1)+'" font-size="10.5" fill="var(--amber)" text-anchor="'+(fl?'end':'start')+'">'+nf(SQ3*Vx.mag/1e3,1)+' kV</text>';
+  s+='<circle cx="'+mx+'" cy="'+PY(ps[vI]).toFixed(1)+'" r="4" fill="var(--phC)"/>';
+  s+='<text x="'+(mx+(fl?-8:8))+'" y="'+(PY(ps[vI])-7).toFixed(1)+'" font-size="10.5" fill="var(--phC)" text-anchor="'+(fl?'end':'start')+'">'+nf(pfx,3)+'</text>';
+  $('lineSvg').innerHTML=s;
+}
+
+/* ---------- render ---------- */
+function render(){
+  var d=derive();
+  S.phi=d.phi;
+  $('bP').textContent=nfi(S.P/1e6)+' MW';
+  $('bV').textContent=nfi(S.V/1e3)+' kV';
+  $('bPf').textContent=nf(S.pf,2);
+  $('bL').textContent=S.L+' km';
+  $('bR').textContent=nf(S.r,3)+' Ω/km';
+
+  up('hI',nfi(d.I)); up('hLoss',mw(d.loss)); up('hPct',nf(d.pct,2));
+  up('dLoss',mw(d.loss)); up('dPct',nf(d.pct,2));
+  $('cP').setAttribute('aria-valuetext',nfi(S.P/1e6)+' megawatts');
+  $('cV').setAttribute('aria-valuetext',nfi(S.V/1e3)+' kilovolts');
+  $('cPf').setAttribute('aria-valuetext','cos phi '+nf(S.pf,2));
+  $('cL').setAttribute('aria-valuetext',S.L+' kilometres');
+  $('cR').setAttribute('aria-valuetext',nf(S.r,3)+' ohms per kilometre');
+
+  $('pcVln').textContent=nf(d.VLN/1e3,1);
+  $('pcR').textContent=nf(d.R,2);
+  $('pcRcalc').textContent=nf(S.r,3)+' × '+S.L+' km';
+  $('pcI').textContent=nf(d.I,1);
+  $('pcPph').textContent=nf(S.P/3e6,1);
+  $('pcPf').textContent=nf(S.pf,2);
+  $('pcDrop').textContent=nf(d.drop/1e3,2);
+  $('pcDropPct').textContent=nf(100*d.drop/d.VLN,2);
+  $('pcLossOne').textContent=mw(d.loss/3);
+  $('pcLossAll').textContent=mw(d.loss);
+
+  up('phiOut',nf(d.phi,1));
+  up('angOut',nf(30+d.phi,1));
+
+  $('trace').innerHTML=
+    '<span class="row"><span class="lhs">I_L &nbsp;&nbsp;= P / (√3 · V_LL · cos φ) </span>= <span class="num">'+nfi(S.P)+'</span> / (1.732 × <span class="num">'+nfi(S.V)+'</span> × <span class="num">'+nf(S.pf,2)+'</span>) = <span class="res">'+nf(d.I,1)+' A</span> <span class="cm">// terminal form — wye or delta, can\'t tell, doesn\'t matter</span></span>'
+   +'<span class="row"><span class="lhs">P_loss = 3 · I_L² · R &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>= 3 × <span class="num">'+nf(d.I,1)+'</span>² × <span class="num">'+nf(d.R,2)+'</span> Ω = <span class="res">'+mw(d.loss)+' MW</span> <span class="cm">// 3 counts conductors; √3 is geometry</span></span>'
+   +'<span class="row"><span class="lhs">check: R·P²/(V_LL·cos φ)² </span>= <span class="num">'+nf(d.R,2)+'</span> × <span class="num">'+nfi(S.P)+'</span>² / (<span class="num">'+nfi(S.V)+'</span> × <span class="num">'+nf(S.pf,2)+'</span>)² = <span class="res">'+mw(d.R*S.P*S.P/(S.V*S.V*S.pf*S.pf))+' MW</span> <span class="ok">✓ same</span></span>';
+
+  up('sR',nf(d.R,2)+' Ω');
+  up('sI',nf(d.I,1)+' A');
+  up('sLoss',mw(d.loss)+' MW');
+  up('sPct',nf(d.pct,2)+' %');
+  up('sSend',mw(d.Psend,1)+' MW');
+  up('sEff',nf(d.eff,2)+' %');
+  up('sYear',nf(d.yearGWh,1)+' GWh');
+  up('sCost','≈ A$'+nf(d.yearGWh*0.1,1)+'M / yr');
+
+  var IA=S.P/(S.V*S.pf), LA=3*IA*IA*d.R, LB=d.I*d.I*d.R, LC=SQ3*d.I*d.I*d.R;
+  up('mAI',nf(IA,1));
+  up('mALc',mw(LA)+' MW');
+  up('mAL',mw(LA)+' MW');
+  up('mBL',mw(LB)+' MW');
+  up('mCL',mw(LC)+' MW');
+
+  var cx=$('cX');
+  if(+cx.max!==S.L){ cx.max=S.L; }
+  if(S.x>S.L){ S.x=S.L; }
+  if(+cx.value!==S.x){ cx.value=S.x; }
+  $('bX').textContent=S.x+' km from load';
+  $('bXl').textContent=nf(S.xl,2)+' Ω/km';
+  $('cXl').setAttribute('aria-valuetext',nf(S.xl,2)+' ohms per kilometre');
+  cx.setAttribute('aria-valuetext',S.x+' kilometres from the load');
+
+  drawPhasor();
+  drawChart(d);
+  drawWalk(d);
+}
+
+/* ---------- wiring ---------- */
+function bind(id,fn){ $(id).addEventListener('input',function(e){ fn(parseFloat(e.target.value)); render(); }); }
+bind('cP', function(v){ S.P=v*1e6; });
+bind('cV', function(v){ S.V=v*1e3; });
+bind('cPf',function(v){ S.pf=v; });
+bind('cL', function(v){ S.L=v; });
+bind('cR', function(v){ S.r=v; });
+bind('cXl',function(v){ S.xl=v; });
+bind('cX', function(v){ S.x=v; });
+
+$('magBtn').addEventListener('click',function(){
+  S.mag=!S.mag;
+  this.setAttribute('aria-pressed',S.mag?'true':'false');
+  render();
+});
+
+$('spinBtn').addEventListener('click',function(){
+  S.spin=!S.spin;
+  this.setAttribute('aria-pressed',S.spin?'true':'false');
+  this.textContent=S.spin?'⏸ Freeze the frame':'▶ Spin at "50 Hz" (slowed ≈150×)';
+});
+$('logBtn').addEventListener('click',function(){
+  S.log=!S.log;
+  this.setAttribute('aria-pressed',S.log?'true':'false');
+  this.textContent=S.log?'Show linear':'Show log–log';
+  render();
+});
+
+var deckWrap=$('deckWrap');
+new IntersectionObserver(function(en){
+  deckWrap.classList.toggle('stuck', !en[0].isIntersecting);
+},{rootMargin:'-1px 0px 0px 0px',threshold:0}).observe($('deckSentinel'));
+$('deckToggle').addEventListener('click',function(){
+  var m=deckWrap.classList.toggle('min');
+  this.setAttribute('aria-expanded', String(!m));
+  this.textContent=m?'Show controls ▾':'Hide ▴';
+});
+
+/* assumption chips — tap to unfold the fine print */
+var ledger=$('ledger'), activeChip=null;
+Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){
+  c.setAttribute('role','button'); c.setAttribute('aria-pressed','false'); c.tabIndex=0; c.title=c.dataset.d;
+  function fire(){
+    if(activeChip===c){ c.setAttribute('aria-pressed','false'); ledger.hidden=true; activeChip=null; return; }
+    if(activeChip) activeChip.setAttribute('aria-pressed','false');
+    activeChip=c; c.setAttribute('aria-pressed','true');
+    ledger.textContent=c.dataset.d; ledger.hidden=false;
+  }
+  c.addEventListener('click',fire);
+  c.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fire(); } });
+});
+
+/* the chart as a control — drag to scrub V_LL, tap a dot to snap */
+var chart=$('chartSvg'), draggingV=false;
+function setV(v){
+  v=Math.min(550e3,Math.max(66e3,Math.round(v/1e3)*1e3));
+  if(v!==S.V){ S.V=v; $('cV').value=v/1e3; render(); }
+}
+function chartToV(ev){
+  var r=chart.getBoundingClientRect(), x=(ev.clientX-r.left)*760/r.width;
+  var f=Math.min(1,Math.max(0,(x-CH.l)/CH.pw));
+  return CH.log ? Math.exp(Math.log(66e3)+f*(Math.log(550e3)-Math.log(66e3)))
+                : 66e3+f*(550e3-66e3);
+}
+chart.addEventListener('pointerdown',function(ev){
+  var hit=ev.target.getAttribute && ev.target.getAttribute('data-v');
+  if(hit){ setV(+hit); return; }
+  draggingV=true; chart.setPointerCapture(ev.pointerId); setV(chartToV(ev)); ev.preventDefault();
+});
+chart.addEventListener('pointermove',function(ev){ if(draggingV){ setV(chartToV(ev)); ev.preventDefault(); } });
+chart.addEventListener('pointerup',function(){ draggingV=false; });
+chart.addEventListener('pointercancel',function(){ draggingV=false; });
+
+/* back to the set question */
+$('resetBtn').addEventListener('click',function(){
+  S.P=300e6; S.V=275e3; S.pf=1.00; S.L=120; S.r=0.05; S.xl=0.32; S.x=120;
+  $('cP').value=300; $('cV').value=275; $('cPf').value=1; $('cL').value=120; $('cR').value=0.05;
+  $('cXl').value=0.32; $('cX').max=120; $('cX').value=120;
+  render();
+});
+
+var last=performance.now();
+function tick(t){
+  var dt=(t-last)/1000; last=t;
+  if(S.spin){ S.delta=(S.delta+120*dt)%360; drawPhasor(); }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+render();
+})();
+//JS-END
+</script>
+</body>
+</html>

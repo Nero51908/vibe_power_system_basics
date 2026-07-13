@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Twenty Milliseconds, Frozen — Phasors and Their Sinusoids</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#0B1220;          /* night-grid background */
+  --panel:#111A2C;        /* instrument panel */
+  --panel2:#0E1626;
+  --line:#243450;         /* hairline */
+  --gridline:#141F33;     /* graph paper */
+  --text:#DCE4F2;
+  --dim:#8CA0BE;
+  --faint:#5B6E8C;
+  --amber:#FFB454;        /* instrument numerals */
+  --amber-dim:#C98A3B;
+  --good:#6FDF9A;
+  --bad:#FF7A85;
+  --phA:#FF5964;          /* red   — phase A */
+  --phB:#EDF2FA;          /* white — phase B */
+  --phC:#5CA8FF;          /* blue  — phase C */
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);background:var(--ink);
+  background-image:
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size:44px 44px;
+  font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:17px;line-height:1.55;
+}
+main{max-width:1360px;margin:0 auto;padding:0 24px 72px}
+a{color:var(--amber)}
+code,.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+
+/* ---------- header ---------- */
+header{max-width:1360px;margin:0 auto;padding:48px 24px 8px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.22em;color:var(--amber);text-transform:uppercase}
+h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(30px,5vw,52px);line-height:1.04;margin:10px 0 14px;letter-spacing:-.01em}
+.dek{max-width:70ch;color:var(--dim);font-size:17.5px}
+.dek b{color:var(--text);font-weight:600}
+
+/* live instrument strip */
+.strip{display:flex;flex-wrap:wrap;gap:14px;margin:26px 0 8px}
+.gauge{flex:1 1 200px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;position:relative;overflow:hidden}
+.gauge:before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);opacity:.5}
+.gauge .k{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.gauge .v{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:clamp(24px,3.4vw,34px);color:var(--amber);font-variant-numeric:tabular-nums;margin-top:2px}
+.gauge .u{font-size:14px;color:var(--dim);font-weight:400;margin-left:4px}
+
+/* ---------- control deck (sticky) ---------- */
+#deckSentinel{height:1px}
+.deck-wrap{position:sticky;top:0;z-index:60;background:var(--ink);padding:10px 0 8px;margin:18px 0 40px}
+.deck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 10px;transition:box-shadow .2s,border-color .2s,padding .2s}
+.deck-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.deck-head .spacer{flex:1 1 auto}
+.deck h2{margin:0 0 4px;font-family:'Archivo';font-size:15px;font-weight:700;letter-spacing:.04em}
+.deck-mini{display:none;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.deck-mini b{color:var(--amber);font-weight:600}
+.btn.tiny{padding:4px 10px;font-size:12px}
+.deck-wrap.stuck .deck-mini,.deck-wrap.min .deck-mini{display:inline}
+.deck > p{margin:2px 0 14px;color:var(--dim);font-size:14px}
+.deck-wrap.stuck .deck{box-shadow:0 10px 28px -10px rgba(0,0,0,.65);border-color:var(--amber-dim);padding:12px 18px 6px}
+.deck-wrap.stuck .deck > p,.deck-wrap.stuck .note{display:none}
+.deck-wrap.stuck .sliders{gap:8px 18px}
+.deck-wrap.stuck .ctl label{font-size:12px;margin-bottom:0}
+.deck-wrap.stuck input[type=range]{height:20px}
+.deck-wrap.min .sliders,.deck-wrap.min .deck > p,.deck-wrap.min .note{display:none}
+.deck-wrap.min .deck{padding:10px 18px}
+@media (max-width:600px){
+  .deck-wrap.stuck .sliders{display:flex;overflow-x:auto;padding-bottom:4px}
+  .deck-wrap.stuck .ctl{flex:0 0 160px}
+  .deck-wrap.stuck .deck-mini{font-size:12px}
+}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 22px}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--dim);margin-bottom:2px}
+.ctl .badge{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--amber);height:26px;background:transparent}
+.deck .note{grid-column:1 / -1;font-size:12.5px;color:var(--faint);margin:4px 0 6px}
+.deck .note b{color:var(--amber);font-weight:600;font-family:'IBM Plex Mono',monospace}
+
+/* ---------- sections ---------- */
+section{margin:0 0 44px}
+.step{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase}
+section h2{font-family:'Archivo';font-weight:700;font-size:clamp(21px,2.6vw,27px);margin:6px 0 10px;letter-spacing:-.005em}
+section > p{max-width:76ch;color:var(--dim)}
+section > p b, section > p strong{color:var(--text)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+
+/* assumption chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:help}
+.chip:hover{border-color:var(--amber-dim)}
+.chip[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.ledger{margin-top:12px;padding:12px 16px;border-left:2px solid var(--amber);background:var(--panel2);border-radius:0 10px 10px 0;font-size:13.5px;color:var(--dim);max-width:76ch}
+
+/* stat grid */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat .k{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-family:'IBM Plex Mono',monospace}
+.stat .v{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);font-size:18px;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .v small{color:var(--dim);font-weight:400;font-size:12.5px}
+.stat.hot .v{color:var(--amber)}
+
+/* svg shared */
+svg{display:block;width:100%;height:auto}
+.flash{animation:numflash .55s ease-out}
+@keyframes numflash{from{text-shadow:0 0 10px rgba(255,180,84,.95)}to{text-shadow:0 0 0 rgba(255,180,84,0)}}
+.svgcap{font-size:13.5px;color:var(--faint);margin-top:10px}
+text{font-family:'IBM Plex Mono',monospace}
+
+/* two-pane projection layout: 2fr/3fr matches the 440/660 viewBoxes so both
+   SVGs render the same height and the projection line carries straight across */
+.duo{display:grid;grid-template-columns:2fr 3fr;gap:22px;align-items:start}
+@media (max-width:780px){.duo{grid-template-columns:1fr}}
+.sumrow{margin-top:12px;padding:10px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--text);font-variant-numeric:tabular-nums;overflow-x:auto;white-space:nowrap}
+.sumrow b{color:var(--good);font-weight:600}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer}
+.btn:hover{border-color:var(--amber-dim)}
+.btn[aria-pressed="true"]{color:var(--ink);background:var(--amber);border-color:var(--amber);font-weight:600}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:6px}
+
+/* mistakes */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:14px}
+.mcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.mcard h3{margin:0 0 6px;font-family:'Archivo';font-size:15.5px;font-weight:700}
+.mcard code{display:block;font-size:13px;color:var(--dim);margin:6px 0 10px;white-space:nowrap;overflow-x:auto}
+.mcard .got{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:22px;color:var(--text);font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.06em;border-radius:999px;padding:3px 10px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+.tag.high{color:var(--bad);border:1px solid var(--bad)}
+.tag.low{color:var(--phC);border:1px solid var(--phC)}
+.mcard p{font-size:13.5px;color:var(--dim);margin:10px 0 0}
+
+footer{border-top:1px solid var(--line);margin-top:20px;padding-top:22px;color:var(--faint);font-size:13px}
+footer code{color:var(--dim)}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;animation:none!important}
+  #playBtn{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Power systems · mental model · 50 Hz</div>
+  <h1>Twenty milliseconds, frozen</h1>
+  <p class="dek">Every AC voltage and current on the grid is a <b>spinning arrow</b> photographed mid-turn. The film runs at <b>50 turns a second</b>, and the whole story — phasors, RMS, phase shift, why three-phase is smooth — fits in one <b>20&nbsp;ms</b> loop. Below, the film is slowed enough to watch. Magnitudes are pinned to the flagship worked example (<b>158.8&nbsp;kV</b> line-to-neutral, <b>629.8&nbsp;A</b>); this page varies time, frequency and angle — and all of it is draggable.</p>
+
+  <div class="strip">
+    <div class="gauge"><div class="k">Angular speed ω = 2πf</div><div class="v"><span id="gW">–</span><span class="u">rad/s</span></div></div>
+    <div class="gauge"><div class="k">Period T = 1/f</div><div class="v"><span id="gT">–</span><span class="u">ms</span></div></div>
+    <div class="gauge"><div class="k">Frame rate of the film</div><div class="v"><span id="gF">–</span><span class="u">turns/s</span></div></div>
+  </div>
+</header>
+
+<main>
+
+  <div id="deckSentinel" aria-hidden="true"></div>
+  <div class="deck-wrap" id="deckWrap">
+  <div class="deck" aria-label="Controls">
+    <div class="deck-head">
+      <h2>Control deck — the film</h2>
+      <span class="spacer"></span>
+      <span class="deck-mini">t = <b id="dT2">–</b> ms · ωt = <b id="dWt">–</b>°</span>
+      <button class="btn tiny" id="playBtn" aria-pressed="true">⏸ Pause</button>
+      <button class="btn tiny" id="resetBtn">Reset question</button>
+      <button class="btn tiny" id="deckToggle" aria-expanded="true">Hide ▴</button>
+    </div>
+    <p>Four numbers define the film: how fast the arrows spin (f), how far the current trails its voltage (φ), how slowed the playback is, and where in the turn you are standing (t). The deck stays pinned while you scroll — every panel below reads the same frozen instant.</p>
+    <div class="sliders">
+      <div class="ctl"><label>Frequency f <span class="badge" id="bF">50 Hz</span></label>
+        <input type="range" id="cF" min="25" max="100" step="1" value="50" aria-label="Frequency in hertz"></div>
+      <div class="ctl"><label>Current lag φ <span class="badge" id="bPhi">30°</span></label>
+        <input type="range" id="cPhi" min="0" max="90" step="1" value="30" aria-label="Current lag angle in degrees"></div>
+      <div class="ctl"><label>Slow motion <span class="badge" id="bSlow">150× slower</span></label>
+        <input type="range" id="cSlow" min="50" max="500" step="10" value="150" aria-label="Slow motion playback factor"></div>
+      <div class="ctl"><label>Time scrub t <span class="badge" id="bT">0.00 ms</span></label>
+        <input type="range" id="cT" min="0" max="20" step="0.05" value="0" aria-label="Time within one period in milliseconds"></div>
+      <div class="note">One turn of the arrows = one period T = 1/f. At the current settings a <b id="nT">20.0 ms</b> turn takes <b id="nTurn">3.00 s</b> of real time to watch. Scrubbing pauses playback; change f and the time axis, the scrub range and every readout follow — nothing on this page is hardwired to 20 ms.</div>
+    </div>
+  </div>
+  </div>
+
+  <section id="assume">
+    <div class="step">Step 0 · The assumption ledger</div>
+    <h2>Five things the film assumes</h2>
+    <p>Every panel below rests on these. State them before reading anything off a phasor diagram — the point of a mental model is knowing when it applies. Tap a chip to unfold its fine print.</p>
+    <div class="chips">
+      <span class="chip" data-d="Arrow length is the RMS value — the DC-equivalent heating value, the number on every nameplate. The wave itself crests √2 higher: 158.8 kV of arrow, 224.5 kV of crest.">RMS phasors — arrow = V_rms</span>
+      <span class="chip" data-d="v_a(t) = √2·V·cos(ωt): at t = 0 phase a sits exactly at its positive crest. A sine reference shifts every angle on the page by 90° — either is fine, but say which one out loud.">cosine reference</span>
+      <span class="chip" data-d="The arrows pass the reference in the order a, b, c while rotating counterclockwise — positive sequence. Swap any two phases and every motor on the system runs backwards.">positive sequence abc — counterclockwise</span>
+      <span class="chip" data-d="Equal magnitudes, exactly 120° apart. This is what makes v_a + v_b + v_c = 0 at every instant (Step 2) and the summed three-phase power dead flat (Step 4).">balanced — equal, 120° apart</span>
+      <span class="chip" data-d="Phasor arithmetic freezes e^(jωt) at one shared ω. Arrows spinning at different speeds have no fixed relative angle, so only same-ω phasors may be added — see the frequency mixer card in Step 5.">one frequency — only same-ω phasors add</span>
+    </div>
+    <div class="ledger" id="ledger" hidden></div>
+  </section>
+
+  <section id="project">
+    <div class="step">Step 1 · One arrow, one wave</div>
+    <h2>The projection machine</h2>
+    <p>One arrow of length V_rms turns counterclockwise at ω. The instantaneous voltage is the projection of its <b>√2-stretched tip</b> — the point riding the dashed outer ring — onto the reference axis, drawn <b>pointing up</b> here so that height can be carried straight across; the arrow itself stays RMS length. The wave on the right is nothing but this rotation seen frame by frame; the ring, √2 larger than the arrow, is where the crest lives.</p>
+    <div class="panel">
+      <div class="duo">
+        <div>
+          <svg id="svg1L" viewBox="0 0 440 340" role="img" aria-label="Rotating phasor of phase a voltage with RMS circle and root-2 peak ring">
+            <defs>
+              <marker id="mk1A" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phA)"/></marker>
+            </defs>
+            <g id="g1s"></g>
+            <g id="g1d"></g>
+          </svg>
+        </div>
+        <div>
+          <svg id="svg1R" viewBox="0 0 660 340" role="img" aria-label="One period of the phase a voltage waveform with the swept portion highlighted">
+            <g id="w1s"></g>
+            <g id="w1d"></g>
+          </svg>
+        </div>
+      </div>
+      <div class="svgcap">Freeze any frame — that photograph <b style="color:var(--dim)">is</b> the phasor diagram; spinning the photo is just changing the reference, and nothing physical changes. The dashed projection line carries the ring point (the true crest value) across to the wave cursor; the arrow itself stays RMS length.</div>
+    </div>
+  </section>
+
+  <section id="trio">
+    <div class="step">Step 2 · The balanced trio</div>
+    <h2>Three arrows, one machine</h2>
+    <p>Same machine, three arrows welded 120° apart and turning as one rigid set. Three projections, three waves — and because the arrows are balanced, the three instantaneous values sum to <b>exactly zero at every frame</b> of the film. Watch the ledger below compute it live.</p>
+    <div class="panel">
+      <div class="duo">
+        <div>
+          <svg id="svg2L" viewBox="0 0 440 340" role="img" aria-label="Three balanced phase voltage phasors 120 degrees apart">
+            <defs>
+              <marker id="mk2A" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phA)"/></marker>
+              <marker id="mk2B" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phB)"/></marker>
+              <marker id="mk2C" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phC)"/></marker>
+            </defs>
+            <g id="g2s"></g>
+            <g id="g2d"></g>
+          </svg>
+        </div>
+        <div>
+          <svg id="svg2R" viewBox="0 0 660 340" role="img" aria-label="Three phase voltage waveforms over one period with a shared time cursor">
+            <g id="w2s"></g>
+            <g id="w2d"></g>
+          </svg>
+        </div>
+      </div>
+      <div class="sumrow" id="sumRow">–</div>
+      <div class="svgcap">That standing zero is the flagship page's dashed neutral rail: what cancels here is the voltage sum, but feed a balanced load and the three currents inherit the same 120° geometry and cancel identically — so the return conductor would carry nothing at every frame, and we don't build it.</div>
+    </div>
+  </section>
+
+  <section id="lagtime">
+    <div class="step">Step 3 · Lag, in degrees and in milliseconds</div>
+    <h2>The angle that is also a time</h2>
+    <p>A phase shift is not just an angle on a protractor — it is a time on the clock: a current lagging by φ crosses zero <b>Δt = φ/360°·T later</b> than its voltage. Below, v_a(t) and i_a(t) are drawn with <b>separate vertical scales</b> — kilovolts and amperes share no axis, so compare shapes and timing, never heights.</p>
+    <div class="panel">
+      <div class="duo">
+        <div>
+          <svg id="svg3L" viewBox="0 0 440 340" role="img" aria-label="Phase a voltage phasor with the lagging current phasor at minus phi">
+            <defs>
+              <marker id="mk3V" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phA)"/></marker>
+              <marker id="mk3I" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--text)"/></marker>
+            </defs>
+            <g id="g3s"></g>
+            <g id="g3d"></g>
+          </svg>
+        </div>
+        <div>
+          <svg id="svg3R" viewBox="0 0 660 340" role="img" aria-label="Voltage and lagging current waveforms with markers on the positive-going zero crossings">
+            <g id="w3s"></g>
+            <g id="w3d"></g>
+          </svg>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">current lags voltage by</div><div class="v" id="s3phi">–</div></div>
+        <div class="stat hot"><div class="k">the same lag as time · Δt = φ/360°·T</div><div class="v" id="s3dt">–</div></div>
+        <div class="stat"><div class="k">sign check</div><div class="v">lagging = later <small>i crosses zero AFTER v</small></div></div>
+      </div>
+      <div class="svgcap">Markers sit on the two positive-going zero crossings. The flagship's scope trap applies here too: probe V_ab instead of V_a and the screen shows 30° + φ = <span id="tTrap">60</span>° of separation — always measure element voltage against element current.</div>
+    </div>
+  </section>
+
+  <section id="coda">
+    <div class="step">Step 4 · Coda</div>
+    <h2>Why three-phase exists</h2>
+    <p>Multiply the two waves of Step 3 and the per-phase power p_a(t) = v_a(t)·i_a(t) <b>pulses at 2ω</b>: average VI·cos φ, ripple ±VI. With any lag at all it even dips negative twice a turn — energy sloshing <b>backward</b> toward the source. Add the three phases and every pulsation cancels: the sum is dead flat.</p>
+    <div class="panel">
+      <svg id="svg4" viewBox="0 0 1100 380" role="img" aria-label="Per-phase instantaneous power pulsating at twice the supply frequency, with the flat three-phase sum">
+        <g id="g4s"></g>
+        <g id="g4d"></g>
+      </svg>
+      <div class="stats">
+        <div class="stat hot"><div class="k">per-phase average · VI·cos φ</div><div class="v" id="s4avg">–</div></div>
+        <div class="stat"><div class="k">per-phase ripple · ±VI</div><div class="v" id="s4rip">–</div></div>
+        <div class="stat"><div class="k">per-phase range</div><div class="v" id="s4range">–</div></div>
+        <div class="stat hot"><div class="k">three-phase sum · 3·VI·cos φ</div><div class="v" id="s4sum">–</div></div>
+      </div>
+      <div class="svgcap">Each phase shakes; the shaft does not. Single-phase traction was rough enough to need special railway supplies — everything industrial is three-phase for this one picture. At φ = 0 the per-phase range is 0…200.0 MW and the sum 300.0 MW.</div>
+    </div>
+  </section>
+
+  <section id="mistakes">
+    <div class="step">Step 5 · Diagnostics</div>
+    <h2>Three ways to misread the film</h2>
+    <p>Each misreading leaves a fingerprint. The cards recompute from the sliders — if your number disagrees with a phasor calculation by one of these exact factors, you have found the mistake.</p>
+    <div class="mgrid">
+      <div class="mcard">
+        <h3>The √2 impostor</h3>
+        <code>arrow |I| = <span id="m5i">–</span> A rms · crest = √2·|I| = <span id="m5pkc">–</span> A</code>
+        <span class="got" id="m5pk">–</span><span class="tag high">×√2 fingerprint</span>
+        <p>Reading the phasor length as the peak. The arrow is RMS; the wave it generates crests √2 higher. If a scope peak and a phasor magnitude disagree by exactly 1.414, this is why.</p>
+      </div>
+      <div class="mcard">
+        <h3>Lag means later</h3>
+        <code>Δt = φ/360°·T = <span id="m5dtc">–</span> ms</code>
+        <span class="got" id="m5dt">–</span><span class="tag high">sign trap</span>
+        <p>A LAGGING current peaks and crosses zero <b style="color:var(--text)">after</b> the voltage, not before. Students who shift the wave the wrong way carry −φ into every power calculation that follows.</p>
+      </div>
+      <div class="mcard">
+        <h3>The frequency mixer</h3>
+        <code>50 Hz phasor + 60 Hz phasor = ?</code>
+        <span class="got">undefined</span><span class="tag high">one ω only</span>
+        <p>Phasors freeze e^(jωt) at one shared ω; arrows spinning at different speeds have no fixed relative angle, so their sum is not a phasor. Every diagram on this page silently assumes one frequency — fine print that matters again on the harmonics page.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b style="color:var(--dim)">The whole film on one line.</b><br>
+    <code>v = √2·V·cos ωt · i = √2·I·cos(ωt−φ) · p = v·i = V·I·[cos φ + cos(2ωt−φ)] · Σ_3φ = 3·V·I·cos φ = constant</code></p>
+    <p>Scope honestly stated: balanced, single-frequency, RMS convention throughout; magnitudes borrowed from the flagship worked example (300 MW delivered at 275 kV, unity-pf line current 629.8 A — here the lag φ is a free slider, so the powers in Step 4 are illustrative of that same machine). Built as a teaching aid; everything recomputes in the browser, nothing is stored.</p>
+  </footer>
+
+</main>
+
+<script>
+//JS-START
+(function(){
+'use strict';
+var $ = function(id){ return document.getElementById(id); };
+var SQ3 = Math.sqrt(3), R2 = Math.SQRT2, PI = Math.PI;
+/* fixed magnitudes, carried over from the flagship worked example */
+var V  = 275e3/SQ3;                 /* 158 771 V rms line-to-neutral */
+var I0 = 300e6/(SQ3*275e3);         /* 629.84 A rms, 300 MW at unity pf */
+var VI = V*I0;                      /* 100 MW exactly */
+var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var S  = { f:50, phi:30, slow:150, t:(RM?5:0), playing:!RM };
+
+function nf(x,d){ return x.toLocaleString('en-AU',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function nfi(x){ return x.toLocaleString('en-AU',{maximumFractionDigits:0}); }
+function nm(x,d){ return (x<0?'−':'')+nf(Math.abs(x),d); }
+function up(id,txt){
+  var e=$(id);
+  if(e.textContent!==txt){
+    e.textContent=txt;
+    if(!RM){ e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); }
+  }
+}
+function set(id,txt){ var e=$(id); if(e.textContent!==txt) e.textContent=txt; }
+
+function derive(){
+  var w=2*PI*S.f, T=1000/S.f, phiR=S.phi*PI/180;
+  return { w:w, T:T, phiR:phiR,
+    Vpk:V*R2, Ipk:I0*R2,
+    dtLag:S.phi/360*T,
+    pavg:VI*Math.cos(phiR), pmin:VI*(Math.cos(phiR)-1),
+    pmax:VI*(Math.cos(phiR)+1), psum:3*VI*Math.cos(phiR) };
+}
+
+/* ---------- shared geometry ---------- */
+/* phasor panes: the reference (real) axis points UP so the tip height IS v(t);
+   rotation is counterclockwise (up -> left -> down -> right) */
+var PC={cx:210, cy:170, ring:130};       /* ring = sqrt2 * V drawn radius   */
+var RV=PC.ring/R2;                        /* arrow radius = V_rms, 91.9 px   */
+var WX0=64, WX1=640, WCY=170, WAMP=130;   /* wave panes, same px per volt    */
+var W3V=110, W3I=64;                      /* step 3 separate wave scales     */
+var P4={x0:70, x1:1050};                  /* power pane                      */
+
+function ppt(r,ang){ return [PC.cx - r*Math.sin(ang), PC.cy - r*Math.cos(ang)]; }
+function xw(fr){ return WX0+(WX1-WX0)*fr; }
+function px4(u){ return P4.x0+(P4.x1-P4.x0)*u; }
+function yP(mw){ return 335-(mw+110)*300/420; }
+function ln(x1,y1,x2,y2,st){ return '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" '+st+'/>'; }
+function tx(x,y,size,fill,anchor,txt){ return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-size="'+size+'" fill="'+fill+'" text-anchor="'+anchor+'">'+txt+'</text>'; }
+function cir(x,y,r,st){ return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r+'" '+st+'/>'; }
+function arrow(r,ang,color,w,dash,mk){
+  var p=ppt(r,ang);
+  return ln(PC.cx,PC.cy,p[0],p[1],'stroke="'+color+'" stroke-width="'+w+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+' marker-end="url(#'+mk+')"');
+}
+function plabel(r,ang,txt,color,hw){       /* label riding a phasor tip, ink clamped to the viewBox */
+  var p=ppt(r,ang);
+  var x=Math.max(hw,Math.min(440-hw,p[0])), y=Math.max(14,Math.min(332,p[1]+4));
+  return tx(x,y,13,color,'middle',txt);
+}
+function parc(r,a0,a1,st){
+  var d='',n=18;
+  for(var k=0;k<=n;k++){ var p=ppt(r,a0+(a1-a0)*k/n); d+=(k?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1); }
+  return '<path d="'+d+'" fill="none" '+st+'/>';
+}
+var vaF=function(u){ return Math.cos(2*PI*u); };
+var vbF=function(u){ return Math.cos(2*PI*u-2*PI/3); };
+var vcF=function(u){ return Math.cos(2*PI*u+2*PI/3); };
+function wpts(fn,amp,f0,f1,n){
+  var p='';
+  for(var k=0;k<=n;k++){ var u=f0+(f1-f0)*k/n; p+=(k?' ':'')+xw(u).toFixed(1)+','+(WCY-amp*fn(u)).toFixed(1); }
+  return p;
+}
+function wpoly(fn,amp,color,w,op,dash){
+  return '<polyline points="'+wpts(fn,amp,0,1,150)+'" fill="none" stroke="'+color+'" stroke-width="'+w+'" opacity="'+op+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';
+}
+function waveAxis(T){                      /* zero line + bottom time axis, labels recomputed from T */
+  var s=ln(WX0,WCY,WX1,WCY,'stroke="var(--gridline)" stroke-width="1.2"');
+  s+=ln(WX0,312,WX1,312,'stroke="var(--line)" stroke-width="1.5"');
+  for(var i=0;i<=4;i++){
+    var x=xw(i/4);
+    s+=ln(x,308,x,316,'stroke="var(--line)" stroke-width="1.2"');
+    s+=tx(x,331,11,'var(--faint)','middle',nf(T*i/4,1));
+  }
+  /* unit rides the end of the axis line (tick baseline), clear of the final
+     tick number below — that number is T itself, so it stays */
+  s+=tx(WX1+6,316,11,'var(--faint)','start','ms');
+  return s;
+}
+
+/* ---------- static layers (rebuilt when f or phi changes) ---------- */
+function stat1L(d){
+  var s='';
+  s+=cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"');
+  s+=cir(PC.cx,PC.cy,PC.ring,'fill="none" stroke="var(--faint)" stroke-width="1.2" stroke-dasharray="5 6"');
+  s+=cir(PC.cx,PC.cy,3,'fill="var(--dim)"');
+  s+=tx(PC.cx,24,11.5,'var(--faint)','middle','dashed ring = √2·V_rms = '+nf(d.Vpk/1e3,1)+' kV — the crest');
+  s+=tx(PC.cx,330,11.5,'var(--faint)','middle','solid circle = arrow length = V_rms = '+nf(V/1e3,1)+' kV');
+  return s;
+}
+function stat1R(d){
+  var s=waveAxis(d.T);
+  s+=wpoly(vaF,WAMP,'var(--phA)',1.6,0.3);
+  var yp=WCY-WAMP, yr=WCY-WAMP/R2;
+  s+=ln(WX0,yp,WX1,yp,'stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 5"');
+  s+=tx(WX1,yp-7,11.5,'var(--dim)','end','peak = √2·V_rms = '+nf(d.Vpk/1e3,1)+' kV');
+  s+=ln(WX0,yr,WX1,yr,'stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 5"');
+  s+=tx(WX1,yr-6,11.5,'var(--dim)','end','arrow length V_rms = '+nf(V/1e3,1)+' kV');
+  return s;
+}
+function stat2L(){
+  return cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"')
+       + cir(PC.cx,PC.cy,3,'fill="var(--dim)"');
+}
+function stat2R(d){
+  var s=waveAxis(d.T);
+  s+=wpoly(vaF,WAMP,'var(--phA)',2.2,0.9);
+  s+=wpoly(vbF,WAMP,'var(--phB)',2.2,0.9);
+  s+=wpoly(vcF,WAMP,'var(--phC)',2.2,0.9);
+  return s;
+}
+function stat3L(){
+  return cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"')
+       + cir(PC.cx,PC.cy,3,'fill="var(--dim)"');
+}
+function stat3R(d){
+  var iaF=function(u){ return Math.cos(2*PI*u-d.phiR); };
+  var s=waveAxis(d.T);
+  s+=wpoly(vaF,W3V,'var(--phA)',2.2,0.95);
+  s+=wpoly(iaF,W3I,'var(--text)',1.7,0.9);
+  s+=tx(WX0-8,WCY-W3V+4,11,'var(--phA)','end','v_a');
+  s+=tx(WX0-8,WCY-W3I*Math.cos(d.phiR)+4,11,'var(--text)','end','i_a');
+  /* positive-going zero crossings: v at 3T/4, i at 3T/4 + dt */
+  var xv=xw(0.75), xi=xw(0.75+S.phi/360);
+  s+=ln(xv,WCY,xv,250,'stroke="var(--phA)" stroke-width="1" stroke-dasharray="3 4" opacity=".7"');
+  s+=ln(xi,WCY,xi,250,'stroke="var(--text)" stroke-width="1" stroke-dasharray="3 4" opacity=".7"');
+  s+=cir(xv,WCY,4.5,'fill="var(--panel)" stroke="var(--phA)" stroke-width="2"');
+  s+=cir(xi,WCY,4.5,'fill="var(--panel)" stroke="var(--text)" stroke-width="2"');
+  s+=ln(xv,245,xv,255,'stroke="var(--amber)" stroke-width="1.5"');
+  s+=ln(xi,245,xi,255,'stroke="var(--amber)" stroke-width="1.5"');
+  s+=ln(xv,250,xi,250,'stroke="var(--amber)" stroke-width="1.5"');
+  var mid=Math.max(WX0+92,Math.min(WX1-92,(xv+xi)/2));
+  s+=tx(mid,268,11.5,'var(--amber)','middle','Δt = '+nf(d.dtLag,3)+' ms = φ/360°·T');
+  return s;
+}
+function stat4(d){
+  var s='',k,i,u,n=220;
+  var paF=function(u){ return VI*(Math.cos(d.phiR)+Math.cos(4*PI*u-d.phiR)); };
+  var pbF=function(u){ return VI*(Math.cos(d.phiR)+Math.cos(4*PI*u-4*PI/3-d.phiR)); };
+  var pcF=function(u){ return VI*(Math.cos(d.phiR)+Math.cos(4*PI*u+4*PI/3-d.phiR)); };
+  for(k=-100;k<=300;k+=100){
+    var y=yP(k);
+    s+=ln(P4.x0,y,P4.x1,y,'stroke="var(--gridline)" stroke-width="'+(k===0?1.6:1)+'"');
+    s+=tx(P4.x0-8,y+4,11,'var(--faint)','end',(k<0?'−':'')+Math.abs(k));
+  }
+  s+=ln(P4.x0,35,P4.x0,335,'stroke="var(--line)" stroke-width="1.5"');
+  s+=ln(P4.x0,335,P4.x1,335,'stroke="var(--line)" stroke-width="1.5"');
+  for(i=0;i<=4;i++){
+    var x=px4(i/4);
+    s+=ln(x,335,x,341,'stroke="var(--line)" stroke-width="1.2"');
+    s+=tx(x,356,11,'var(--faint)','middle',nf(d.T*i/4,1));
+  }
+  s+=tx(P4.x0,374,11.5,'var(--dim)','start','time within one turn (ms) — p(t) in MW pulses at 2f: two humps per turn');
+  /* negative lobes, shaded */
+  var shade='M '+px4(0).toFixed(1)+','+yP(0).toFixed(1);
+  for(k=0;k<=n;k++){ u=k/n; shade+=' L '+px4(u).toFixed(1)+','+yP(Math.min(paF(u),0)/1e6).toFixed(1); }
+  shade+=' L '+px4(1).toFixed(1)+','+yP(0).toFixed(1)+' Z';
+  s+='<path d="'+shade+'" fill="var(--bad)" opacity=".3"/>';
+  /* curves */
+  function curve(fn,st){
+    var p='';
+    for(var k2=0;k2<=n;k2++){ var u2=k2/n; p+=(k2?' ':'')+px4(u2).toFixed(1)+','+yP(fn(u2)/1e6).toFixed(1); }
+    return '<polyline points="'+p+'" fill="none" '+st+'/>';
+  }
+  s+=curve(pbF,'stroke="var(--phB)" stroke-width="1.4" opacity=".3"');
+  s+=curve(pcF,'stroke="var(--phC)" stroke-width="1.4" opacity=".3"');
+  s+=curve(paF,'stroke="var(--phA)" stroke-width="2.6"');
+  /* average line */
+  var ya=yP(d.pavg/1e6);
+  s+=ln(P4.x0,ya,P4.x1,ya,'stroke="var(--phA)" stroke-width="1.2" stroke-dasharray="6 5" opacity=".75"');
+  s+=tx(P4.x0+10,ya-7,11,'var(--phA)','start','p_a average = VI·cos φ = '+nf(d.pavg/1e6,2)+' MW');
+  /* dead-flat three-phase sum */
+  var ys=yP(d.psum/1e6);
+  s+=ln(P4.x0,ys,P4.x1,ys,'stroke="var(--amber)" stroke-width="2.6"');
+  s+=tx(P4.x1-4,(ys>62?ys-10:ys+18),12,'var(--amber)','end','p_a+p_b+p_c = 3·VI·cos φ = '+nf(d.psum/1e6,2)+' MW — dead flat');
+  /* negative-lobe readout */
+  var pminMW=d.pmin/1e6;
+  if(pminMW<-0.5){
+    var u1=(180+S.phi)/720, yl=Math.min(yP(pminMW)+18,331);
+    s+=tx(px4(u1),yl,11,'var(--bad)','middle','dips to '+nm(pminMW,2)+' MW — energy flows backward twice a cycle');
+  }
+  return s;
+}
+
+/* ---------- dynamic layers (pure functions of S.t — scrub repaints identically to play) ---------- */
+function dyn1(d){
+  var fr=Math.min(S.t/d.T,1), ang=2*PI*fr, c=Math.cos(ang);
+  var tip=ppt(RV,ang), rp=ppt(PC.ring,ang);
+  var s='';
+  s+=ln(tip[0],tip[1],rp[0],rp[1],'stroke="var(--phA)" stroke-width="1.2" stroke-dasharray="3 4" opacity=".8"');
+  s+=arrow(RV,ang,'var(--phA)',2.6,'','mk1A');
+  s+=cir(rp[0],rp[1],3.5,'fill="var(--phA)"');
+  s+=ln(rp[0],rp[1],440,rp[1],'stroke="var(--phA)" stroke-width="1" stroke-dasharray="4 5" opacity=".65"');
+  s+=plabel(RV+18,ang,'V_a','var(--phA)',14);
+  /* baseline 44: one line below the static ring caption (baseline 24), and the
+     ring/projection ink in that band never reaches left of x≈168 at any ωt */
+  s+=tx(12,44,12,'var(--amber)','start','ωt = '+nfi(fr*360)+'°');
+  $('g1d').innerHTML=s;
+  var xc=xw(fr), yc=WCY-WAMP*c, s2='';
+  s2+=ln(0,yc,xc,yc,'stroke="var(--phA)" stroke-width="1" stroke-dasharray="4 5" opacity=".65"');
+  if(fr>0.004) s2+='<polyline points="'+wpts(vaF,WAMP,0,fr,Math.max(2,Math.round(150*fr)))+'" fill="none" stroke="var(--phA)" stroke-width="2.4"/>';
+  s2+=cir(xc,yc,5,'fill="var(--phA)"');
+  $('w1d').innerHTML=s2;
+}
+function dyn2(d){
+  var fr=Math.min(S.t/d.T,1), ang=2*PI*fr;
+  var s='';
+  s+=arrow(RV,ang,'var(--phA)',2.6,'','mk2A');
+  s+=arrow(RV,ang-2*PI/3,'var(--phB)',2.6,'','mk2B');
+  s+=arrow(RV,ang+2*PI/3,'var(--phC)',2.6,'','mk2C');
+  s+=plabel(RV+18,ang,'V_a','var(--phA)',14);
+  s+=plabel(RV+18,ang-2*PI/3,'V_b','var(--phB)',14);
+  s+=plabel(RV+18,ang+2*PI/3,'V_c','var(--phC)',14);
+  s+=tx(12,24,12,'var(--amber)','start','ωt = '+nfi(fr*360)+'°');
+  $('g2d').innerHTML=s;
+  var xc=xw(fr), s2='';
+  s2+=ln(xc,40,xc,300,'stroke="var(--faint)" stroke-width="1" opacity=".8"');
+  s2+=cir(xc,WCY-WAMP*vaF(fr),5,'fill="var(--phA)"');
+  s2+=cir(xc,WCY-WAMP*vbF(fr),5,'fill="var(--phB)"');
+  s2+=cir(xc,WCY-WAMP*vcF(fr),5,'fill="var(--phC)"');
+  $('w2d').innerHTML=s2;
+  /* round the terms first, then sum the rounded terms (exact, in tenths) so the
+     printed arithmetic always adds up; ±0.1 is honest display rounding, not physics */
+  var r1=function(x){ var v=Math.round(x*10)/10; return v===0?0:v; };
+  var a=r1(d.Vpk*vaF(fr)/1e3), b=r1(d.Vpk*vbF(fr)/1e3), c=r1(d.Vpk*vcF(fr)/1e3);
+  var z=(Math.round(a*10)+Math.round(b*10)+Math.round(c*10))/10;
+  var f1=function(x){ return x<0?'(−'+nf(-x,1)+')':nf(x,1); };
+  $('sumRow').innerHTML='v_a + v_b + v_c &nbsp;=&nbsp; '+f1(a)+' + '+f1(b)+' + '+f1(c)
+    +' &nbsp;=&nbsp; <b>'+nm(z,1)+' kV</b> — at this frame, and every other'
+    +(z!==0?' (display rounding — the exact sum is 0)':'');
+}
+function dyn3(d){
+  var fr=Math.min(S.t/d.T,1), ang=2*PI*fr, angI=ang-d.phiR;
+  var s='';
+  if(S.phi>4){
+    s+=parc(40,angI,ang,'stroke="var(--phC)" stroke-width="1.3"');
+    s+=plabel(54,ang-d.phiR/2,'φ','var(--phC)',7);
+  }
+  s+=arrow(RV,ang,'var(--phA)',2.6,'','mk3V');
+  s+=arrow(62,angI,'var(--text)',1.7,'3 4','mk3I');
+  s+=plabel(RV+18,ang,'V_a','var(--phA)',14);
+  s+=plabel(62+17,angI,'I_a','var(--text)',13);
+  s+=tx(12,24,12,'var(--amber)','start','ωt = '+nfi(fr*360)+'°');
+  s+=tx(12,320,11,'var(--faint)','start','I_a drawn to its own (symbolic) radius');
+  $('g3d').innerHTML=s;
+  var xc=xw(fr), s2='';
+  s2+=ln(xc,40,xc,300,'stroke="var(--faint)" stroke-width="1" opacity=".8"');
+  s2+=cir(xc,WCY-W3V*vaF(fr),5,'fill="var(--phA)"');
+  s2+=cir(xc,WCY-W3I*Math.cos(2*PI*fr-d.phiR),4,'fill="var(--text)"');
+  $('w3d').innerHTML=s2;
+}
+function dyn4(d){
+  var fr=Math.min(S.t/d.T,1);
+  var pa=VI*(Math.cos(d.phiR)+Math.cos(4*PI*fr-d.phiR))/1e6;
+  var xc=px4(fr), s='';
+  s+=ln(xc,35,xc,335,'stroke="var(--faint)" stroke-width="1" opacity=".7"');
+  s+=cir(xc,yP(pa),5,'fill="var(--phA)"');
+  s+=cir(xc,yP(d.psum/1e6),4,'fill="var(--amber)"');
+  s+=tx(P4.x0+10,24,12,'var(--phA)','start','p_a(now) = '+nm(pa,1)+' MW');
+  $('g4d').innerHTML=s;
+}
+
+/* ---------- render fan-out ---------- */
+function render(){
+  var d=derive();
+  set('bF',nfi(S.f)+' Hz');
+  set('bPhi',nfi(S.phi)+'°');
+  set('bSlow',nfi(S.slow)+'× slower');
+  $('cF').setAttribute('aria-valuetext',nfi(S.f)+' hertz');
+  $('cPhi').setAttribute('aria-valuetext',nfi(S.phi)+' degrees of current lag');
+  $('cSlow').setAttribute('aria-valuetext',nfi(S.slow)+' times slower than real time');
+
+  up('gW',nf(d.w,1)); up('gT',nf(d.T,1)); up('gF',nfi(S.f));
+  up('nT',nf(d.T,1)+' ms'); up('nTurn',nf(d.T*S.slow/1000,2)+' s');
+
+  /* scrub range follows T (largest multiple of the 0.05 step inside T) */
+  var cT=$('cT'), mx=Math.floor(d.T*20)/20;
+  if(Math.abs(parseFloat(cT.max)-mx)>1e-9) cT.max=mx;
+  if(S.t>mx) S.t=mx;
+
+  $('g1s').innerHTML=stat1L(d); $('w1s').innerHTML=stat1R(d);
+  $('g2s').innerHTML=stat2L();  $('w2s').innerHTML=stat2R(d);
+  $('g3s').innerHTML=stat3L();  $('w3s').innerHTML=stat3R(d);
+  $('g4s').innerHTML=stat4(d);
+
+  up('s3phi',nf(S.phi,1)+'°');
+  up('s3dt',nf(d.dtLag,3)+' ms');
+  set('tTrap',nfi(30+S.phi));
+  up('s4avg',nf(d.pavg/1e6,2)+' MW');
+  up('s4rip','±'+nf(VI/1e6,2)+' MW');
+  up('s4range',nm(d.pmin/1e6,2)+' … '+nm(d.pmax/1e6,2)+' MW');
+  up('s4sum',nf(d.psum/1e6,2)+' MW');
+  up('m5i',nf(I0,1)); up('m5pkc',nf(d.Ipk,1)); up('m5pk',nf(d.Ipk,1)+' A');
+  up('m5dtc',nf(d.dtLag,3)); up('m5dt',nf(d.dtLag,3)+' ms later');
+
+  renderTime();
+}
+function renderTime(){
+  var d=derive();
+  if(S.t>d.T) S.t=d.T;   /* scrub may rest on the last frame; wrapping is the clock's job */
+  var cT=$('cT');
+  cT.value=S.t;
+  cT.setAttribute('aria-valuetext',nf(S.t,2)+' milliseconds into the turn');
+  set('bT',nf(S.t,2)+' ms');
+  set('dT2',nf(S.t,2)); set('dWt',nfi(Math.min(S.t/d.T,1)*360));
+  dyn1(d); dyn2(d); dyn3(d); dyn4(d);
+}
+
+/* ---------- wiring ---------- */
+function setPlay(p){
+  S.playing=p;
+  var b=$('playBtn');
+  b.textContent=p?'⏸ Pause':'▶ Play';
+  b.setAttribute('aria-pressed',p?'true':'false');
+}
+$('playBtn').addEventListener('click',function(){ setPlay(!S.playing); });
+
+$('cF').addEventListener('input',function(e){
+  var Told=1000/S.f, frac=S.t/Told;          /* keep the phase fraction t/T continuous */
+  S.f=parseFloat(e.target.value);
+  S.t=frac*(1000/S.f);
+  render();
+});
+$('cPhi').addEventListener('input',function(e){ S.phi=parseFloat(e.target.value); render(); });
+$('cSlow').addEventListener('input',function(e){ S.slow=parseFloat(e.target.value); render(); });
+$('cT').addEventListener('input',function(e){
+  setPlay(false);                             /* scrubbing pauses playback */
+  S.t=parseFloat(e.target.value);
+  renderTime();
+});
+
+$('resetBtn').addEventListener('click',function(){
+  S.f=50; S.phi=30; S.slow=150;
+  $('cF').value=50; $('cPhi').value=30; $('cSlow').value=150;
+  if(RM){ S.t=5; setPlay(false); } else { S.t=0; setPlay(true); }
+  render();
+});
+
+var deckWrap=$('deckWrap');
+new IntersectionObserver(function(en){
+  deckWrap.classList.toggle('stuck', !en[0].isIntersecting);
+},{rootMargin:'-1px 0px 0px 0px',threshold:0}).observe($('deckSentinel'));
+$('deckToggle').addEventListener('click',function(){
+  var m=deckWrap.classList.toggle('min');
+  this.setAttribute('aria-expanded', String(!m));
+  this.textContent=m?'Show controls ▾':'Hide ▴';
+});
+
+/* assumption chips — tap to unfold the fine print */
+var ledger=$('ledger'), activeChip=null;
+Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){
+  c.setAttribute('role','button'); c.setAttribute('aria-pressed','false'); c.tabIndex=0; c.title=c.dataset.d;
+  function fire(){
+    if(activeChip===c){ c.setAttribute('aria-pressed','false'); ledger.hidden=true; activeChip=null; return; }
+    if(activeChip) activeChip.setAttribute('aria-pressed','false');
+    activeChip=c; c.setAttribute('aria-pressed','true');
+    ledger.textContent=c.dataset.d; ledger.hidden=false;
+  }
+  c.addEventListener('click',fire);
+  c.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fire(); } });
+});
+
+/* master clock: t advances 1000/slow ms of film time per real second.
+   rAF stops in hidden tabs, so playback pauses there for free; the dt clamp
+   swallows the jump when the tab comes back. */
+var last=performance.now();
+function tick(now){
+  var dt=Math.min(0.1,(now-last)/1000); last=now;
+  if(S.playing){
+    S.t+=dt*1000/S.slow;
+    var T=1000/S.f;
+    if(S.t>=T) S.t-=T*Math.floor(S.t/T);
+    renderTime();
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+setPlay(S.playing);
+render();
+})();
+//JS-END
+</script>
+</body>
+</html>

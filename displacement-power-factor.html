@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>The Same 300 Megawatts, Twice — Displacement Power Factor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#0B1220;          /* night-grid background */
+  --panel:#111A2C;        /* instrument panel */
+  --panel2:#0E1626;
+  --line:#243450;         /* hairline */
+  --gridline:#141F33;     /* graph paper */
+  --text:#DCE4F2;
+  --dim:#8CA0BE;
+  --faint:#5B6E8C;
+  --amber:#FFB454;        /* instrument numerals */
+  --amber-dim:#C98A3B;
+  --good:#6FDF9A;
+  --bad:#FF7A85;
+  --phA:#FF5964;          /* red   — phase A */
+  --phB:#EDF2FA;          /* white — phase B */
+  --phC:#5CA8FF;          /* blue  — phase C */
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);background:var(--ink);
+  background-image:
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size:44px 44px;
+  font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:17px;line-height:1.55;
+}
+main{max-width:1360px;margin:0 auto;padding:0 24px 72px}
+a{color:var(--amber)}
+code,.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+
+/* ---------- header ---------- */
+header{max-width:1360px;margin:0 auto;padding:48px 24px 8px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.22em;color:var(--amber);text-transform:uppercase}
+h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(30px,5vw,52px);line-height:1.04;margin:10px 0 14px;letter-spacing:-.01em}
+.dek{max-width:70ch;color:var(--dim);font-size:17.5px}
+.dek b{color:var(--text);font-weight:600}
+
+/* live instrument strip */
+.strip{display:flex;flex-wrap:wrap;gap:14px;margin:26px 0 8px}
+.gauge{flex:1 1 200px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;position:relative;overflow:hidden}
+.gauge:before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);opacity:.5}
+.gauge .k{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.gauge .v{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:clamp(24px,3.4vw,34px);color:var(--amber);font-variant-numeric:tabular-nums;margin-top:2px}
+.gauge .u{font-size:14px;color:var(--dim);font-weight:400;margin-left:4px}
+.gauge .sub{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:2px;font-variant-numeric:tabular-nums}
+
+/* ---------- control deck (sticky) ---------- */
+#deckSentinel{height:1px}
+.deck-wrap{position:sticky;top:0;z-index:60;background:var(--ink);padding:10px 0 8px;margin:18px 0 40px}
+.deck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 10px;transition:box-shadow .2s,border-color .2s,padding .2s}
+.deck-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.deck-head .spacer{flex:1 1 auto}
+.deck h2{margin:0 0 4px;font-family:'Archivo';font-size:15px;font-weight:700;letter-spacing:.04em}
+.deck-mini{display:none;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.deck-mini b{color:var(--amber);font-weight:600}
+.btn.tiny{padding:4px 10px;font-size:12px}
+.deck-wrap.stuck .deck-mini,.deck-wrap.min .deck-mini{display:inline}
+.deck > p{margin:2px 0 14px;color:var(--dim);font-size:14px}
+.deck-wrap.stuck .deck{box-shadow:0 10px 28px -10px rgba(0,0,0,.65);border-color:var(--amber-dim);padding:12px 18px 6px}
+.deck-wrap.stuck .deck > p,.deck-wrap.stuck .note{display:none}
+.deck-wrap.stuck .sliders{gap:8px 18px}
+.deck-wrap.stuck .ctl label{font-size:12px;margin-bottom:0}
+.deck-wrap.stuck input[type=range]{height:20px}
+.deck-wrap.min .sliders,.deck-wrap.min .deck > p,.deck-wrap.min .note{display:none}
+.deck-wrap.min .deck{padding:10px 18px}
+@media (max-width:600px){
+  .deck-wrap.stuck .sliders{display:flex;overflow-x:auto;padding-bottom:4px}
+  .deck-wrap.stuck .ctl{flex:0 0 160px}
+  .deck-wrap.stuck .deck-mini{font-size:12px}
+}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 22px}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--dim);margin-bottom:2px}
+.ctl .badge{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--amber);height:26px;background:transparent}
+.deck .note{grid-column:1 / -1;font-size:12.5px;color:var(--faint);margin:4px 0 6px}
+.ctl .btn.wide{width:100%;padding:5px 8px;font-size:12.5px;margin-top:1px}
+
+/* ---------- sections ---------- */
+section{margin:0 0 44px}
+.step{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase}
+section h2{font-family:'Archivo';font-weight:700;font-size:clamp(21px,2.6vw,27px);margin:6px 0 10px;letter-spacing:-.005em}
+section > p{max-width:76ch;color:var(--dim)}
+section > p b, section > p strong{color:var(--text)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+
+/* assumption chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:help}
+.chip:hover{border-color:var(--amber-dim)}
+.chip[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.ledger{margin-top:12px;padding:12px 16px;border-left:2px solid var(--amber);background:var(--panel2);border-radius:0 10px 10px 0;font-size:13.5px;color:var(--dim);max-width:76ch}
+
+/* formula trace */
+.trace{font-family:'IBM Plex Mono',monospace;font-size:clamp(13px,1.9vw,16.5px);line-height:2.15;overflow-x:auto;white-space:nowrap;padding:6px 2px}
+.trace .row{display:block}
+.trace .lhs{color:var(--dim)}
+.trace .num{color:var(--text)}
+.trace .res{color:var(--amber);font-weight:600;font-size:1.08em}
+.trace .ok{color:var(--good);font-weight:600}
+.trace .cm{color:var(--faint);font-size:.85em}
+
+/* stat grid */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat .k{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-family:'IBM Plex Mono',monospace}
+.stat .v{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);font-size:18px;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .v small{color:var(--dim);font-weight:400;font-size:12.5px}
+.stat.hot .v{color:var(--amber)}
+
+/* svg shared */
+svg{display:block;width:100%;height:auto}
+.flash{animation:numflash .55s ease-out}
+@keyframes numflash{from{text-shadow:0 0 10px rgba(255,180,84,.95)}to{text-shadow:0 0 0 rgba(255,180,84,0)}}
+.svgcap{font-size:13.5px;color:var(--faint);margin-top:10px}
+text{font-family:'IBM Plex Mono',monospace}
+
+/* two-column panel layout */
+.duo{display:grid;grid-template-columns:minmax(320px,1fr) minmax(240px,340px);gap:26px;align-items:start}
+@media (max-width:780px){.duo{grid-template-columns:1fr}}
+.readouts .stat{margin-bottom:10px}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer}
+.btn:hover{border-color:var(--amber-dim)}
+.btn[aria-pressed="true"]{color:var(--ink);background:var(--amber);border-color:var(--amber);font-weight:600}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:6px}
+
+/* mistakes */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:14px}
+.mcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.mcard h3{margin:0 0 6px;font-family:'Archivo';font-size:15.5px;font-weight:700}
+.mcard code{display:block;font-size:13px;color:var(--dim);margin:6px 0 10px;white-space:nowrap;overflow-x:auto}
+.mcard .got{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:22px;color:var(--text);font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.06em;border-radius:999px;padding:3px 10px;margin-left:8px;vertical-align:middle}
+.tag.high{color:var(--bad);border:1px solid var(--bad)}
+.tag.low{color:var(--phC);border:1px solid var(--phC)}
+.mcard p{font-size:13.5px;color:var(--dim);margin:10px 0 0}
+
+footer{border-top:1px solid var(--line);margin-top:20px;padding-top:22px;color:var(--faint);font-size:13px}
+footer code{color:var(--dim)}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Power systems · worked example · 50 Hz</div>
+  <h1>The same 300 megawatts, twice</h1>
+  <p class="dek">A factory at the end of the 275&nbsp;kV line draws <b>300&nbsp;MW at unity power factor</b>. The identical factory next door draws the same <b>300&nbsp;MW — at cos&nbsp;φ&nbsp;=&nbsp;0.85 lagging</b>. Same useful power, same voltage, same product out the gate. Yet the second factory pulls <b>18% more current</b>, burns <b>38% more line loss</b>, and gets a bill for something called vars. Where did the extra amperes go? Everything below is live — drag the sliders and watch the waves, the triangle and the losses move together.</p>
+
+  <div class="strip">
+    <div class="gauge"><div class="k">Line current I_L</div><div class="v"><span id="hI">–</span><span class="u">A</span></div><div class="sub">vs <span id="hIu">–</span> A at unity pf (+<span id="hIpc">–</span> %)</div></div>
+    <div class="gauge"><div class="k">Vars on the line Q</div><div class="v"><span id="hQ">–</span><span class="u">MVAr</span></div><div class="sub" id="hQs">–</div></div>
+    <div class="gauge"><div class="k">Line loss vs unity pf</div><div class="v"><span id="hMult">–</span></div><div class="sub">P_loss ∝ 1/pf² at fixed P, V</div></div>
+  </div>
+</header>
+
+<main>
+
+  <div id="deckSentinel" aria-hidden="true"></div>
+  <div class="deck-wrap" id="deckWrap">
+  <div class="deck" aria-label="Controls">
+    <div class="deck-head">
+      <h2>Control deck</h2>
+      <span class="spacer"></span>
+      <span class="deck-mini">true pf <b id="dTpf">–</b> · I_L <b id="dI">–</b> A</span>
+      <button class="btn tiny" id="resetBtn">Reset question</button>
+      <button class="btn tiny" id="deckToggle" aria-expanded="true">Hide ▴</button>
+    </div>
+    <p>Five numbers and one sign define both factories. The deck stays pinned while you scroll, so every panel below can be poked from wherever you're standing.</p>
+    <div class="sliders">
+      <div class="ctl"><label>Delivered power P <span class="badge" id="bP">300 MW</span></label>
+        <input type="range" id="cP" min="50" max="900" step="10" value="300" aria-label="Delivered three-phase power in megawatts"></div>
+      <div class="ctl"><label>Line-to-line V_LL <span class="badge" id="bV">275 kV</span></label>
+        <input type="range" id="cV" min="66" max="550" step="1" value="275" aria-label="Line-to-line voltage in kilovolts"></div>
+      <div class="ctl"><label>Displacement cos φ <span class="badge" id="bPf">0.85 lag</span></label>
+        <input type="range" id="cPf" min="0.70" max="1.00" step="0.01" value="0.85" aria-label="Displacement power factor"></div>
+      <div class="ctl"><label>Reactive sign <span class="badge" id="bLead">lagging</span></label>
+        <button class="btn wide" id="leadBtn" aria-pressed="false">⇄ toggle lag / lead</button></div>
+      <div class="ctl"><label>Capacitors Q_c <span class="badge" id="bQc">0 MVAr</span></label>
+        <input type="range" id="cQc" min="0" max="300" step="1" value="0" aria-label="Shunt capacitor compensation in megavars"></div>
+      <div class="ctl"><label>Current THD_i <span class="badge" id="bThd">0 %</span></label>
+        <input type="range" id="cThd" min="0" max="50" step="1" value="0" aria-label="Total harmonic distortion of the load current in percent"></div>
+      <div class="note">Q_c is shunt capacitance acting <b>at the load bus</b> — it changes what the line carries, never what the factory does. THD_i drives Step&nbsp;5 only: harmonic current adds RMS and heat but carries no average power and never touches cos&nbsp;φ_1 — exactly as x_L drove one panel on the line-losses page.</div>
+    </div>
+  </div>
+  </div>
+
+  <section id="assume">
+    <div class="step">Step 0 · The assumption ledger</div>
+    <h2>Say the fine print out loud</h2>
+    <p>Power factor is three different numbers wearing one name. These chips pin down which one each panel is showing. Tap a chip to unfold its fine print.</p>
+    <div class="chips">
+      <span class="chip" data-d="The grid holds the voltage waveform stiff; nonlinear loads bend the current, not the voltage. That is why the slider is THD_i, and why v(t) stays a clean 50 Hz sine in every panel below.">V sinusoidal — distortion lives in the current</span>
+      <span class="chip" data-d="With harmonics present, φ is defined between the 50 Hz components of v and i only. Harmonic currents flowing against a clean sinusoidal voltage average to zero power — they add RMS amperes, not watts.">φ = angle between FUNDAMENTALS</span>
+      <span class="chip" data-d="displacement pf = cos φ_1 (the angle). distortion pf = I_1/I_rms (the waveshape). true pf = P/S = the product of the two. A cos-φ meter reads only the first; the billing meter feels both.">displacement pf · distortion pf · true pf = product</span>
+      <span class="chip" data-d="Equal magnitudes, 120° apart, identical loads — so one phase tells the whole story. The waves drawn below are per-phase quantities: V_LN against one line current.">balanced three-phase · per-phase waves shown</span>
+      <span class="chip" data-d="Load (motor) convention: lagging current means the load absorbs vars, Q &gt; 0. Leading current supplies vars, Q &lt; 0. Shunt capacitors supply vars at the bus, cancelling a lagging draw.">load convention: lagging current absorbs vars</span>
+    </div>
+    <div class="ledger" id="ledger" hidden></div>
+  </section>
+
+  <section id="waves">
+    <div class="step">Step 1 · Read the scope</div>
+    <h2>An angle you can read as a time</h2>
+    <p>cos&nbsp;φ&nbsp;=&nbsp;0.85 sounds abstract until you put both waves on a scope. The current's zero-crossing arrives <b>Δt&nbsp;=&nbsp;φ/360°&nbsp;×&nbsp;20&nbsp;ms</b> after the voltage's — a lag you could measure with a stopwatch, if your stopwatch read microseconds. Flip the toggle in the deck and the current crosses <em>early</em> instead: leading. The phasor inset is the same fact frozen — I sits at −φ from V.</p>
+    <div class="panel duo">
+      <div>
+        <svg id="wave1Svg" viewBox="0 0 760 330" role="img" aria-label="Per-phase voltage and current waves with zero-crossing markers and the time delay between them">
+          <g id="w1G"></g>
+        </svg>
+        <div class="svgcap">Per-phase quantities, two cycles of 50&nbsp;Hz. <b style="color:var(--phB)">v(t)</b> and <b style="color:var(--phC)">i(t)</b> are drawn on <b>separate vertical scales</b> (224&nbsp;kV and 1&nbsp;kA do not share an axis politely); only the timing is comparable. Dots mark the rising zero-crossings the Δt arrow spans.</div>
+      </div>
+      <div class="readouts">
+        <svg id="ph1Svg" viewBox="0 0 240 190" role="img" aria-label="Phasor inset: voltage along the reference, current at minus phi">
+          <defs>
+            <marker id="m1W" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phB)"/></marker>
+            <marker id="m1B" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phC)"/></marker>
+          </defs>
+          <g id="p1G"></g>
+        </svg>
+        <div class="stat"><div class="k">Displacement angle φ</div><div class="v" id="w1Phi">–</div></div>
+        <div class="stat"><div class="k">cos φ (displacement pf)</div><div class="v" id="w1Pf">–</div></div>
+        <div class="stat hot"><div class="k">Δt = φ/360° × 20 ms</div><div class="v" id="w1Dt">–</div></div>
+        <div class="stat"><div class="k">Peaks (√2 × RMS)</div><div class="v"><span id="w1Vp">–</span> <small>· </small><span id="w1Ip">–</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="instant">
+    <div class="step">Step 2 · Instantaneous power</div>
+    <h2>Multiply the waves</h2>
+    <p>Point-by-point, p(t)&nbsp;=&nbsp;v(t)·i(t) splits into two machines: an <b style="color:var(--good)">always-forward hump</b> P_1·(1−cos&nbsp;2ωt) that averages to real power, and a <b style="color:var(--phC)">zero-average slosh</b> −Q_1·sin&nbsp;2ωt that ships energy to the load and hauls it straight back, twice per cycle. The slosh is reactive power — it does nothing useful and it still has to fit down the wire.</p>
+    <div class="panel">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="btn tiny" id="humpBtn" aria-pressed="true">P_1 hump</button>
+        <button class="btn tiny" id="sloshBtn" aria-pressed="true">Q_1 slosh</button>
+      </div>
+      <svg id="p2Svg" viewBox="0 0 760 340" role="img" aria-label="Instantaneous per-phase power decomposed into a real-power hump and a reactive slosh">
+        <g id="p2G"></g>
+      </svg>
+      <div class="trace" id="trace2"></div>
+      <div class="stats">
+        <div class="stat hot"><div class="k">Average = P_1 (per phase)</div><div class="v" id="p2Avg">–</div></div>
+        <div class="stat"><div class="k">Ripple amplitude V_LN·I_1</div><div class="v" id="p2Rip">–</div></div>
+        <div class="stat"><div class="k">Minimum of p(t)</div><div class="v" id="p2Min">–</div></div>
+        <div class="stat"><div class="k">Q_1 slosh amplitude</div><div class="v" id="p2Q">–</div></div>
+      </div>
+      <div class="svgcap">The red-shaded lobes are the moments the load pushes power <em>back into the grid</em> — the receipt for every var. At unity pf they vanish; the hump alone remains and never dips below zero.</div>
+    </div>
+  </section>
+
+  <section id="triangle">
+    <div class="step">Step 3 · Apparent power</div>
+    <h2>The triangle you pay for</h2>
+    <p>Average the hump and the slosh separately and you get the power triangle: P on the horizontal, Q on the vertical, and the hypotenuse S&nbsp;=&nbsp;√(P²+Q²) — the quantity the conductors actually feel, because <b>the amperes follow S, not P</b>. Capacitors at the bus supply vars locally, eating the vertical leg from below: slide Q_c and watch the hypotenuse — and the current — shrink.</p>
+    <div class="panel duo">
+      <div>
+        <svg id="triSvg" viewBox="0 0 660 380" role="img" aria-label="Live power triangle with capacitor correction eating the reactive leg">
+          <defs>
+            <marker id="m3G" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--good)"/></marker>
+            <marker id="m3B" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phC)"/></marker>
+            <marker id="m3A" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/></marker>
+          </defs>
+          <g id="t3G"></g>
+        </svg>
+        <div class="svgcap">Drawn on the current's side of the axis: a lagging current hangs below its voltage, so its vars hang below the P axis. Push Q_c past Q and the triangle flips <b>above</b> the axis — the bus is now leading, and the hypotenuse starts growing again. Overcorrection is just undercorrection in a mirror.</div>
+      </div>
+      <div class="readouts">
+        <div class="stat hot"><div class="k">Apparent power S (line)</div><div class="v" id="t3S">–</div></div>
+        <div class="stat"><div class="k">Vars left after Q_c</div><div class="v" id="t3Qn">–</div></div>
+        <div class="stat"><div class="k">Corrected angle φ′</div><div class="v" id="t3Phi">–</div></div>
+        <div class="stat"><div class="k">Corrected pf′ = cos φ′</div><div class="v" id="t3Pf">–</div></div>
+        <div class="stat hot"><div class="k">I′ = S′/(√3·V_LL) — amperes follow S</div><div class="v" id="t3I">–</div></div>
+        <button class="btn" id="snapBtn">Snap Q_c to reach pf 0.95</button>
+        <div class="svgcap" id="t3Note">–</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="lineloss">
+    <div class="step">Step 4 · Losses</div>
+    <h2>What the line thinks</h2>
+    <p>Borrow the line-losses page's identity, <b>P_loss = R·P²/(V_LL·cos&nbsp;φ)²</b>, with its own line: R&nbsp;=&nbsp;6&nbsp;Ω per phase (0.05&nbsp;Ω/km&nbsp;×&nbsp;120&nbsp;km). Delivered power and voltage fixed by the sliders, the pf is the only knob left — and losses climb as <b>1/pf²</b>. The dot sits at the <em>corrected</em> pf′, so watch it slide downhill as Q_c does its work.</p>
+    <div class="panel">
+      <svg id="multSvg" viewBox="0 0 760 360" role="img" aria-label="Loss multiplier one over power factor squared with the operating point marked">
+        <g id="m4G"></g>
+      </svg>
+      <div class="stats">
+        <div class="stat hot"><div class="k">Loss multiplier 1/pf′²</div><div class="v" id="m4X">–</div></div>
+        <div class="stat"><div class="k">Line loss at this pf′</div><div class="v" id="m4Loss">–</div></div>
+        <div class="stat"><div class="k">Line loss at unity</div><div class="v" id="m4U">–</div></div>
+        <div class="stat"><div class="k">The price of the angle</div><div class="v" id="m4Extra">–</div></div>
+        <div class="stat"><div class="k">Extra energy / year</div><div class="v" id="m4Year">–</div></div>
+        <div class="stat hot"><div class="k">Extra cost @ A$100/MWh</div><div class="v" id="m4Cost">–</div></div>
+      </div>
+      <div class="svgcap">Honestly stated: this assumes the flagship's line (6&nbsp;Ω, 120&nbsp;km) and this loading 24/7 — real loss load factors are lower. The order of magnitude is the lesson: a power-factor angle on one circuit is millions of dollars a year, which is why utilities bill for vars and factories buy capacitors.</div>
+    </div>
+  </section>
+
+  <section id="distortion">
+    <div class="step">Step 5 · Harmonics</div>
+    <h2>Displacement earns its name</h2>
+    <p>Now let the current distort — a classic six-pulse rectifier draws 5th and 7th harmonics on top of the fundamental. Slide THD_i up and watch what does <em>not</em> move: <b>cos&nbsp;φ_1 stays exactly where the pf slider put it</b>, because φ is an angle between fundamentals. What falls is the <b>true</b> power factor P/S = cos&nbsp;φ_1&nbsp;×&nbsp;I_1/I_rms — the harmonic amperes add RMS without adding watts.</p>
+    <div class="panel">
+      <svg id="thdSvg" viewBox="0 0 760 310" role="img" aria-label="Clean sinusoidal voltage against a harmonically distorted current wave">
+        <g id="d5G"></g>
+      </svg>
+      <div class="stats">
+        <div class="stat"><div class="k">cos φ_1 (displacement)</div><div class="v" id="d5Phi">–</div></div>
+        <div class="stat"><div class="k">Distortion pf = I_1/I_rms</div><div class="v" id="d5Dpf">–</div></div>
+        <div class="stat hot"><div class="k">True pf = product</div><div class="v" id="d5Tpf">–</div></div>
+        <div class="stat"><div class="k">I_rms = I_1·√(1+THD²)</div><div class="v" id="d5Irms">–</div></div>
+        <div class="stat hot"><div class="k">Extra copper loss</div><div class="v" id="d5X">–</div></div>
+      </div>
+      <div class="svgcap">Harmonic mix: I_5 = √0.8·THD·I_1 and I_7 = √0.2·THD·I_1 (so their RMS sum is exactly THD·I_1), zero-phase on the fundamental. The fix is split down the middle: <b>capacitors repair displacement, filters repair distortion</b> — and a cos-φ meter and a true-pf meter on the same feeder disagree by exactly the distortion factor.</div>
+    </div>
+  </section>
+
+  <section id="mistakes">
+    <div class="step">Step 6 · Diagnostics</div>
+    <h2>Three ways to get vars wrong</h2>
+    <p>Each mistake has a fingerprint. The cards recompute from the sliders — poke the deck and watch the wrongness track the truth.</p>
+    <div class="mgrid">
+      <div class="mcard">
+        <h3>The subtraction var</h3>
+        <code>Q = S − P = <span id="mA1">–</span> MVAr ?</code>
+        <span class="got" id="mA2">–</span><span class="tag high">real Q — √(S²−P²)</span>
+        <p>P, Q and S make a right triangle, not a shopping receipt. Vars live on the <em>vertical</em> leg, not in the arithmetic leftover — subtracting the legs of a triangle has never once produced its third side.</p>
+      </div>
+      <div class="mcard">
+        <h3>The optimistic meter</h3>
+        <code>quote cos φ = <span id="mB1">–</span> as "the pf" at 40% THD</code>
+        <span class="got" id="mB2">–</span><span class="tag low">true pf — ×0.93 kVA missed</span>
+        <p>A cos-φ meter reads the fundamentals and misses every harmonic ampere. At 40% THD the true pf is lower by exactly the distortion factor <span class="mono" id="mB3">–</span> — size the transformer off the optimistic number and it runs hot.</p>
+      </div>
+      <div class="mcard">
+        <h3>The overcorrector</h3>
+        <code>bolt on Q_c = 250 MVAr → Q′ = <span id="mC1">–</span></code>
+        <span class="got" id="mC2">–</span><span class="tag high">current rising again</span>
+        <p>Past the P axis the triangle regrows on the other side: I_L is back up to <span class="mono" id="mC3">–</span>&nbsp;A against the <span class="mono" id="mC4">–</span>&nbsp;A minimum at exact correction. Vars cost money in either direction — set Q_c on the slider to 250 and watch Step&nbsp;3 flip.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b style="color:var(--dim)">The whole story on one line.</b><br>
+    <code>cos φ = P/S only when everything is sinusoidal; in general  true pf = P/S = cos φ_1 × I_1/I_rms,  with  S = √3·V_LL·I_L</code></p>
+    <p>Scope honestly stated: the voltage is kept sinusoidal (distortion lives in the current), the system is balanced, and Q_c is an ideal var source — no capacitor losses, no detuning reactors, no resonance study. Real installations need all three checked. Built as a teaching aid; all quantities recompute in the browser, nothing is stored.</p>
+  </footer>
+
+</main>
+
+<script>
+//JS-START
+(function(){
+'use strict';
+var $ = function(id){ return document.getElementById(id); };
+var SQ3 = Math.sqrt(3), R2 = Math.sqrt(2), PI = Math.PI;
+var S = { P:300e6, V:275e3, pf:0.85, lead:false, Qc:0, thd:0, hump:true, slosh:true };
+var RLINE = 6; /* ohms per phase — the flagship's 0.05 x 120 km line */
+
+function nf(x,d){ return x.toLocaleString('en-AU',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function nfi(x){ return x.toLocaleString('en-AU',{maximumFractionDigits:0}); }
+function mw(x,d){ var v=x/1e6; if(Math.abs(v)<1e-6) v=0; d=(d===undefined?2:d); if(d===2&&v>0&&v<0.005){ d=Math.min(4,1-Math.floor(Math.log10(v)+1e-9)); } return nf(v,d); }
+var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function up(id,txt){
+  var e=$(id);
+  if(e.textContent!==txt){
+    e.textContent=txt;
+    if(!RM){ e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); }
+  }
+}
+function tagLL(q){ return q>1e3 ? ' lag' : (q<-1e3 ? ' lead' : ''); }
+
+function derive(){
+  var T=S.thd/100, sg=S.lead?-1:1;
+  var phi=Math.acos(Math.min(1,S.pf));          /* fundamental displacement angle, rad */
+  var VLN=S.V/SQ3;
+  var I1=S.P/(SQ3*S.V*S.pf);                    /* load fundamental line current */
+  var Iu=S.P/(SQ3*S.V);                         /* the unity-pf reference current */
+  var Q=sg*S.P*Math.tan(phi);                   /* load fundamental vars, signed */
+  var S1=S.P/S.pf;                              /* load apparent power (fundamental) */
+  var Qn=Q-S.Qc*1e6;                            /* vars left on the line after Q_c */
+  var phiC=Math.atan2(Qn,S.P);                  /* corrected angle, signed (+ lag) */
+  var pfC=Math.cos(phiC);
+  var Sn=Math.hypot(S.P,Qn);
+  var Ic=Sn/(SQ3*S.V);                          /* corrected line current */
+  var mult=1/(pfC*pfC);                         /* loss multiplier vs unity */
+  var lossU=RLINE*S.P*S.P/(S.V*S.V);
+  var dpf=1/Math.sqrt(1+T*T);
+  var Qc95=S.P*(sg*Math.tan(phi)-Math.tan(Math.acos(0.95))); /* vars to remove for 0.95 lag */
+  return { phi:phi, phid:phi*180/PI, dt:phi*180/PI/360*20, sg:sg, T:T,
+    VLN:VLN, I1:I1, Iu:Iu, Q:Q, S1:S1, Qn:Qn, phiC:phiC, phidC:phiC*180/PI,
+    pfC:pfC, Sn:Sn, Ic:Ic, mult:mult, lossU:lossU, loss:lossU*mult, extra:lossU*(mult-1),
+    dpf:dpf, tpf:pfC*dpf, tpfLoad:S.pf*dpf, Irms:I1*Math.sqrt(1+T*T),
+    P1:S.P/3, S1ph:VLN*I1, Q1:Q/3, Qc95:Qc95, I95:S.P/(SQ3*S.V*0.95) };
+}
+
+function clampX(x,hw,W){ return Math.min(W-hw-4,Math.max(hw+4,x)); }
+
+/* ---------- Step 1: the two waves + phasor inset ---------- */
+function drawWave1(d){
+  var W=760,H=330,l=52,r=14,pw=W-l-r,ymid=136,Av=94,Ai=60;
+  function X(t){ return l+pw*t/40; }
+  var vp='',ip='',k,t,th;
+  for(k=0;k<=200;k++){
+    t=40*k/200; th=2*PI*t/20;
+    vp+=(k?' ':'')+X(t).toFixed(1)+','+(ymid-Av*Math.sin(th)).toFixed(1);
+    ip+=(k?' ':'')+X(t).toFixed(1)+','+(ymid-Ai*Math.sin(th-d.sg*d.phi)).toFixed(1);
+  }
+  var s='';
+  s+='<line x1="'+l+'" y1="'+ymid+'" x2="'+(W-r)+'" y2="'+ymid+'" stroke="var(--gridline)" stroke-width="1"/>';
+  /* time axis */
+  s+='<line x1="'+l+'" y1="272" x2="'+(W-r)+'" y2="272" stroke="var(--line)" stroke-width="1.5"/>';
+  for(k=0;k<=8;k++){ t=5*k; var tx=X(t);
+    s+='<line x1="'+tx+'" y1="272" x2="'+tx+'" y2="278" stroke="var(--line)" stroke-width="1.2"/>';
+    if(k%2===0) s+='<text x="'+tx+'" y="294" font-size="11" fill="var(--faint)" text-anchor="middle">'+t+'</text>';
+  }
+  s+='<text x="'+(W-r)+'" y="312" font-size="11" fill="var(--dim)" text-anchor="end">t (ms) — one cycle = 20 ms at 50 Hz</text>';
+  s+='<polyline points="'+vp+'" fill="none" stroke="var(--phB)" stroke-width="2"/>';
+  s+='<polyline points="'+ip+'" fill="none" stroke="var(--phC)" stroke-width="2.4"/>';
+  s+='<text x="'+(l+4)+'" y="26" font-size="12" fill="var(--phB)">v(t)  peak √2·V_LN = '+nf(R2*d.VLN/1e3,1)+' kV</text>';
+  s+='<text x="'+(W-r-4)+'" y="26" font-size="12" fill="var(--phC)" text-anchor="end">i(t)  peak √2·I_1 = '+nf(R2*d.I1,1)+' A</text>';
+  /* zero-crossing markers: v rises through zero at t=20; i at t=20+sg·dt */
+  var xv=X(20), xi=X(20+d.sg*d.dt);
+  s+='<line x1="'+xv.toFixed(1)+'" y1="40" x2="'+xv.toFixed(1)+'" y2="240" stroke="var(--phB)" stroke-width="1" stroke-dasharray="3 5" opacity=".8"/>';
+  s+='<circle cx="'+xv.toFixed(1)+'" cy="'+ymid+'" r="4" fill="var(--phB)"/>';
+  if(d.dt>0.02){
+    s+='<line x1="'+xi.toFixed(1)+'" y1="40" x2="'+xi.toFixed(1)+'" y2="240" stroke="var(--phC)" stroke-width="1" stroke-dasharray="3 5" opacity=".8"/>';
+    s+='<circle cx="'+xi.toFixed(1)+'" cy="'+ymid+'" r="4" fill="var(--phC)"/>';
+    var xa=Math.min(xv,xi), xb=Math.max(xv,xi), ya=252;
+    s+='<line x1="'+xa.toFixed(1)+'" y1="'+ya+'" x2="'+xb.toFixed(1)+'" y2="'+ya+'" stroke="var(--amber)" stroke-width="1.6"/>';
+    s+='<polygon points="'+xa.toFixed(1)+','+ya+' '+(xa+6).toFixed(1)+','+(ya-4)+' '+(xa+6).toFixed(1)+','+(ya+4)+'" fill="var(--amber)"/>';
+    s+='<polygon points="'+xb.toFixed(1)+','+ya+' '+(xb-6).toFixed(1)+','+(ya-4)+' '+(xb-6).toFixed(1)+','+(ya+4)+'" fill="var(--amber)"/>';
+    var lbl='Δt = '+nf(d.dt,3)+' ms  ('+(d.sg>0?'i lags v':'i leads v')+')';
+    var lx=clampX((xa+xb)/2,110,W);
+    s+='<text x="'+lx.toFixed(1)+'" y="'+(ya-8)+'" font-size="11.5" fill="var(--amber)" text-anchor="middle">'+lbl+'</text>';
+  } else {
+    s+='<text x="'+clampX(xv,90,W).toFixed(1)+'" y="244" font-size="11.5" fill="var(--amber)" text-anchor="middle">Δt = 0.000 ms — in phase</text>';
+  }
+  $('w1G').innerHTML=s;
+
+  /* phasor inset: V along reference, I at −φ (lag) / +φ (lead) */
+  var cx=84,cy=96,g='';
+  g+='<line x1="'+(cx-70)+'" y1="'+cy+'" x2="'+(cx+92)+'" y2="'+cy+'" stroke="var(--gridline)" stroke-width="1"/>';
+  g+='<circle cx="'+cx+'" cy="'+cy+'" r="66" fill="none" stroke="var(--line)" stroke-width="1"/>';
+  g+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+66)+'" y2="'+cy+'" stroke="var(--phB)" stroke-width="2.4" marker-end="url(#m1W)"/>';
+  g+='<text x="'+(cx+72)+'" y="'+(cy+4)+'" font-size="12.5" fill="var(--phB)">V</text>';
+  var ia=-d.sg*d.phi, ix=cx+50*Math.cos(ia), iy=cy-50*Math.sin(ia);
+  g+='<line x1="'+cx+'" y1="'+cy+'" x2="'+ix.toFixed(1)+'" y2="'+iy.toFixed(1)+'" stroke="var(--phC)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#m1B)"/>';
+  g+='<text x="'+(cx+60*Math.cos(ia)+10).toFixed(1)+'" y="'+(cy-60*Math.sin(ia)+4).toFixed(1)+'" font-size="12.5" fill="var(--phC)">I</text>';
+  if(d.phid>2){
+    var arc='',q,aa;
+    for(q=0;q<=14;q++){ aa=ia*q/14; arc+=(q?'L':'M')+(cx+30*Math.cos(aa)).toFixed(1)+','+(cy-30*Math.sin(aa)).toFixed(1); }
+    g+='<path d="'+arc+'" fill="none" stroke="var(--amber)" stroke-width="1.3"/>';
+    g+='<text x="'+(cx+42*Math.cos(ia/2)).toFixed(1)+'" y="'+(cy-42*Math.sin(ia/2)+4).toFixed(1)+'" font-size="11" fill="var(--amber)">φ</text>';
+  }
+  g+='<text x="8" y="16" font-size="11" fill="var(--faint)">phasor frame'+(d.phid<0.01?'':' ('+(d.sg>0?'I lags':'I leads')+')')+'</text>';
+  $('p1G').innerHTML=g;
+}
+
+/* ---------- Step 2: p(t) = v·i, hump + slosh ---------- */
+function drawP2(d){
+  var W=760,H=340,l=64,r=16,t0=22,b=42,pw=W-l-r,phh=H-t0-b;
+  var P1=d.P1, S1p=d.S1ph, Q1=d.Q1;
+  var ymax=Math.max(P1+S1p,2*P1)*1.06+1;
+  var ymin=Math.min(P1-S1p,-Math.abs(Q1),0)*1.18-1;
+  function X(t){ return l+pw*t/40; }
+  function Y(w){ return t0+(ymax-w)/(ymax-ymin)*phh; }
+  var tot='',hum='',slo='',neg='M'+l+','+Y(0).toFixed(1),k,t,th,p;
+  for(k=0;k<=240;k++){
+    t=40*k/240; th=2*PI*t/20;
+    p=P1-S1p*Math.cos(2*th-d.sg*d.phi);
+    tot+=(k?' ':'')+X(t).toFixed(1)+','+Y(p).toFixed(1);
+    hum+=(k?' ':'')+X(t).toFixed(1)+','+Y(P1*(1-Math.cos(2*th))).toFixed(1);
+    slo+=(k?' ':'')+X(t).toFixed(1)+','+Y(-Q1*Math.sin(2*th)).toFixed(1);
+    neg+='L'+X(t).toFixed(1)+','+Y(Math.min(p,0)).toFixed(1);
+  }
+  neg+='L'+(W-r)+','+Y(0).toFixed(1)+'Z';
+  var s='';
+  s+='<line x1="'+l+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-r)+'" y2="'+Y(0).toFixed(1)+'" stroke="var(--line)" stroke-width="1.5"/>';
+  s+='<text x="'+(l-8)+'" y="'+(Y(0)+4).toFixed(1)+'" font-size="11" fill="var(--faint)" text-anchor="end">0</text>';
+  s+='<path d="'+neg+'" fill="var(--bad)" opacity=".28" stroke="none"/>';
+  /* average line */
+  s+='<line x1="'+l+'" y1="'+Y(P1).toFixed(1)+'" x2="'+(W-r)+'" y2="'+Y(P1).toFixed(1)+'" stroke="var(--amber-dim)" stroke-width="1.2" stroke-dasharray="6 6"/>';
+  s+='<text x="'+(W-r-4)+'" y="'+(Y(P1)-6).toFixed(1)+'" font-size="11.5" fill="var(--amber-dim)" text-anchor="end">avg = P_1 = '+mw(P1)+' MW</text>';
+  if(S.hump) s+='<polyline points="'+hum+'" fill="none" stroke="var(--good)" stroke-width="1.8" opacity=".9"/>';
+  if(S.slosh) s+='<polyline points="'+slo+'" fill="none" stroke="var(--phC)" stroke-width="1.8" opacity=".9"/>';
+  s+='<polyline points="'+tot+'" fill="none" stroke="var(--amber)" stroke-width="2.8"/>';
+  /* legend */
+  s+='<text x="'+(l+2)+'" y="14" font-size="12" fill="var(--amber)">p(t) = v·i</text>';
+  s+='<text x="'+(l+130)+'" y="14" font-size="12" fill="var(--good)"'+(S.hump?'':' opacity=".35"')+'>P_1·(1−cos 2ωt) — forward hump</text>';
+  s+='<text x="'+(l+400)+'" y="14" font-size="12" fill="var(--phC)"'+(S.slosh?'':' opacity=".35"')+'>−Q_1·sin 2ωt — zero-average slosh</text>';
+  /* time axis */
+  for(k=0;k<=4;k++){ t=10*k; var tx=X(t);
+    s+='<line x1="'+tx+'" y1="'+(H-b)+'" x2="'+tx+'" y2="'+(H-b+6)+'" stroke="var(--line)" stroke-width="1.2"/>';
+    s+='<text x="'+tx+'" y="'+(H-b+20)+'" font-size="11" fill="var(--faint)" text-anchor="middle">'+t+'</text>';
+  }
+  s+='<line x1="'+l+'" y1="'+(H-b)+'" x2="'+(W-r)+'" y2="'+(H-b)+'" stroke="var(--line)" stroke-width="1.5"/>';
+  s+='<text x="'+(W-r)+'" y="'+(H-6)+'" font-size="11" fill="var(--dim)" text-anchor="end">t (ms) — p(t) beats at 100 Hz, twice per cycle</text>';
+  s+='<text x="'+l+'" y="'+(H-6)+'" font-size="11" fill="var(--dim)">MW, one phase</text>';
+  $('p2G').innerHTML=s;
+
+  $('trace2').innerHTML=
+    '<span class="row"><span class="lhs">p(t) = P_1·(1−cos 2ωt) − Q_1·sin 2ωt </span><span class="cm">// one phase; v(t) = √2·V_LN·sin ωt, i(t) = √2·I_1·sin(ωt−φ)</span></span>'
+   +'<span class="row"><span class="lhs">P_1 = V_LN·I_1·cos φ </span>= <span class="num">'+nfi(d.VLN)+'</span> V × <span class="num">'+nf(d.I1,1)+'</span> A × <span class="num">'+nf(S.pf,2)+'</span> = <span class="res">'+mw(P1)+' MW</span> <span class="cm">// the average — watts that stay delivered</span></span>'
+   +'<span class="row"><span class="lhs">Q_1 = V_LN·I_1·sin φ </span>= <span class="num">'+nfi(d.VLN)+'</span> V × <span class="num">'+nf(d.I1,1)+'</span> A × <span class="num">'+nf(d.sg*Math.sin(d.phi),3)+'</span> = <span class="res">'+nf(Q1/1e6,2)+' MVAr</span> <span class="cm">// slosh amplitude — averages to nothing</span></span>'
+   +'<span class="row"><span class="lhs">min p(t) = P_1 − V_LN·I_1 </span>= <span class="num">'+mw(P1)+'</span> − <span class="num">'+mw(S1p)+'</span> = <span class="res">'+mw(P1-S1p)+' MW</span> <span class="cm">// negative ⇒ the load gives power back</span></span>';
+
+  up('p2Avg',mw(P1)+' MW');
+  up('p2Rip','±'+mw(S1p)+' MVA');
+  up('p2Min',mw(P1-S1p)+' MW');
+  up('p2Q',nf(Q1/1e6,2)+' MVAr');
+}
+
+/* ---------- Step 3: the power triangle ---------- */
+function drawTri(d){
+  var W=660,x0=70,y0=190;
+  var Pm=S.P/1e6, Qm=d.Q/1e6, Qnm=d.Qn/1e6;
+  var k=Math.min(430/Pm, 146/Math.max(Math.abs(Qm),Math.abs(Qnm),1));
+  var Bx=x0+k*Pm, Cy=y0+k*Qm, Cny=y0+k*Qnm;   /* screen y grows downward = lagging side */
+  var lagSide=(Qm>=0);
+  var degen=Math.abs(Qm)<0.02*Pm;             /* unity-ish load: the triangle closes onto the P axis */
+  var qly=null;                               /* Q-leg label baseline, for de-collision with the Q_c label */
+  var s='';
+  s+='<line x1="'+(x0-30)+'" y1="'+y0+'" x2="'+(W-8)+'" y2="'+y0+'" stroke="var(--gridline)" stroke-width="1"/>';
+  s+='<text x="'+(W-12)+'" y="'+(y0-6)+'" font-size="11" fill="var(--faint)" text-anchor="end">P axis</text>';
+  /* P leg */
+  s+='<line x1="'+x0+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+y0+'" stroke="var(--good)" stroke-width="3" marker-end="url(#m3G)"/>';
+  s+='<text x="'+((x0+Bx)/2).toFixed(1)+'" y="'+(y0+(lagSide?-10:22))+'" font-size="12.5" fill="var(--good)" text-anchor="middle">P = '+nfi(Pm)+' MW</text>';
+  /* Q leg */
+  if(Math.abs(Cy-y0)>3){
+    s+='<line x1="'+Bx.toFixed(1)+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+Cy.toFixed(1)+'" stroke="var(--phC)" stroke-width="3" marker-end="url(#m3B)"/>';
+    if(!degen){
+      var qlbl='Q = '+nf(Math.abs(Qm),1)+' MVAr'+(Qm>=0?' lag':' lead');
+      qly=(y0+Cy)/2+4;
+      s+='<text x="'+Math.min(Bx+10,W-8-7.2*qlbl.length).toFixed(1)+'" y="'+qly.toFixed(1)+'" font-size="12.5" fill="var(--phC)">'+qlbl+'</text>';
+    }
+  }
+  /* S hypotenuse */
+  s+='<line x1="'+x0+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+Cy.toFixed(1)+'" stroke="var(--amber)" stroke-width="3" marker-end="url(#m3A)"/>';
+  if(degen){
+    s+='<text x="'+clampX((x0+Bx)/2,123,W).toFixed(1)+'" y="'+(y0-30)+'" font-size="12.5" fill="var(--amber)" text-anchor="middle">unity — the triangle closes: S = P</text>';
+  } else {
+    var sy=(y0+Cy)/2+(lagSide?-10:20);
+    s+='<text x="'+((x0+Bx)/2-10).toFixed(1)+'" y="'+sy.toFixed(1)+'" font-size="12.5" fill="var(--amber)" text-anchor="end">S = '+nf(d.S1/1e6,1)+' MVA</text>';
+  }
+  /* Q_c arrow eats the vertical leg */
+  if(S.Qc>0.5){
+    s+='<line x1="'+Bx.toFixed(1)+'" y1="'+Cy.toFixed(1)+'" x2="'+Bx.toFixed(1)+'" y2="'+Cny.toFixed(1)+'" stroke="var(--good)" stroke-width="3" marker-end="url(#m3G)"/>';
+    var cl='Q_c = '+nfi(S.Qc)+' MVAr';
+    var cly=(Cy+Cny)/2+4;
+    if(qly!==null&&Math.abs(cly-qly)<14){ cly=qly+(cly>=qly?14:-14); }  /* keep the Q and Q_c labels apart as Q_c → Q */
+    s+='<text x="'+Math.min(Bx+10,W-8-7.2*cl.length).toFixed(1)+'" y="'+cly.toFixed(1)+'" font-size="12" fill="var(--good)">'+cl+'</text>';
+    /* corrected hypotenuse */
+    s+='<line x1="'+x0+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+Cny.toFixed(1)+'" stroke="var(--amber)" stroke-width="2" stroke-dasharray="7 5"/>';
+    var spl="S' = "+nf(d.Sn/1e6,1)+' MVA';
+    s+='<text x="'+Math.max(Bx-10,8+7.2*spl.length).toFixed(1)+'" y="'+(Cny+(Qnm>=0?24:-14)).toFixed(1)+'" font-size="12" fill="var(--amber)" text-anchor="end">'+spl+'</text>';
+  }
+  /* phi arc */
+  var aS=-Math.atan2(Qm,Pm);
+  if(Math.abs(aS)>0.05){
+    var arc='',q,aa;
+    for(q=0;q<=16;q++){ aa=aS*q/16; arc+=(q?'L':'M')+(x0+46*Math.cos(aa)).toFixed(1)+','+(y0-46*Math.sin(aa)).toFixed(1); }
+    s+='<path d="'+arc+'" fill="none" stroke="var(--amber)" stroke-width="1.3"/>';
+    s+='<text x="'+(x0+62*Math.cos(aS/2)).toFixed(1)+'" y="'+(y0-62*Math.sin(aS/2)+4).toFixed(1)+'" font-size="11.5" fill="var(--amber)">φ = '+nf(d.phid,1)+'°</text>';
+  }
+  if(S.Qc>0.5){
+    var aN=-Math.atan2(Qnm,Pm);
+    if(Math.abs(aN)>0.03){
+      var arc2='',q2,a2;
+      for(q2=0;q2<=16;q2++){ a2=aN*q2/16; arc2+=(q2?'L':'M')+(x0+26*Math.cos(a2)).toFixed(1)+','+(y0-26*Math.sin(a2)).toFixed(1); }
+      s+='<path d="'+arc2+'" fill="none" stroke="var(--good)" stroke-width="1.3"/>';
+    }
+  }
+  $('t3G').innerHTML=s;
+}
+
+/* ---------- Step 4: loss multiplier chart (static curve, live dot) ---------- */
+function drawMult(d){
+  var W=760,H=360,l=64,r=18,t0=24,b=46,pw=W-l-r,phh=H-t0-b;
+  var m0=1,m1=2.1;
+  function X(pf){ return l+pw*(pf-0.70)/0.30; }
+  function Y(m){ return t0+phh*(m1-m)/(m1-m0); }
+  var s='',k,v;
+  for(v=1;v<=2.001;v+=0.2){
+    s+='<line x1="'+l+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-r)+'" y2="'+Y(v).toFixed(1)+'" stroke="var(--gridline)" stroke-width="1"/>';
+    s+='<text x="'+(l-8)+'" y="'+(Y(v)+4).toFixed(1)+'" font-size="11" fill="var(--faint)" text-anchor="end">×'+nf(v,1)+'</text>';
+  }
+  for(v=0.70;v<=1.001;v+=0.05){
+    s+='<line x1="'+X(v).toFixed(1)+'" y1="'+t0+'" x2="'+X(v).toFixed(1)+'" y2="'+(H-b)+'" stroke="var(--gridline)" stroke-width="1"/>';
+    s+='<text x="'+X(v).toFixed(1)+'" y="'+(H-b+18)+'" font-size="11" fill="var(--faint)" text-anchor="middle">'+nf(v,2)+'</text>';
+  }
+  s+='<line x1="'+l+'" y1="'+t0+'" x2="'+l+'" y2="'+(H-b)+'" stroke="var(--line)" stroke-width="1.5"/>';
+  s+='<line x1="'+l+'" y1="'+(H-b)+'" x2="'+(W-r)+'" y2="'+(H-b)+'" stroke="var(--line)" stroke-width="1.5"/>';
+  s+='<text x="'+(W-r)+'" y="'+(H-10)+'" font-size="11.5" fill="var(--dim)" text-anchor="end">corrected displacement pf′  (lead mirrored onto the same curve)</text>';
+  s+='<text x="'+l+'" y="14" font-size="11.5" fill="var(--dim)">loss multiplier 1/pf′² — same P, same V, same conductor</text>';
+  var path='';
+  for(k=0;k<=140;k++){ v=0.70+0.30*k/140; path+=(k?'L':'M')+X(v).toFixed(1)+','+Y(1/(v*v)).toFixed(1); }
+  s+='<path d="'+path+'" fill="none" stroke="var(--amber)" stroke-width="2.4"/>';
+  /* operating dot at |pf'| — its label geometry decides whether the unity anchor label may show */
+  var pfa=Math.abs(d.pfC), off=(pfa<0.70), pfd=Math.min(1,Math.max(0.70,pfa)), md=Math.min(1/(pfd*pfd),m1);
+  var xo=X(pfd), yo=Y(md);
+  var lbl='pf′ '+nf(pfa,2)+(off?' (off scale)':tagLL(d.Qn))+' → ×'+nf(d.mult,3);
+  var flip=xo>l+pw*0.6;
+  var dlx=xo+(flip?-11:11), dly=Math.max(yo-12,t0+12);
+  var dx0=flip?dlx-7*lbl.length:dlx, dx1=flip?dlx:dlx+7*lbl.length;
+  /* unity anchor — label suppressed when the operating dot's label zone overlaps it */
+  var ul='unity → ×1.000', ux=X(1)-8, uy=Y(1)-10, ux0=ux-7*ul.length;
+  s+='<circle cx="'+X(1).toFixed(1)+'" cy="'+Y(1).toFixed(1)+'" r="4" fill="var(--panel)" stroke="var(--good)" stroke-width="2"/>';
+  if(Math.abs(dly-uy)>=14 || dx1<ux0-4 || dx0>ux+4){
+    s+='<text x="'+ux.toFixed(1)+'" y="'+uy.toFixed(1)+'" font-size="11" fill="var(--good)" text-anchor="end">'+ul+'</text>';
+  }
+  s+='<line x1="'+xo.toFixed(1)+'" y1="'+yo.toFixed(1)+'" x2="'+xo.toFixed(1)+'" y2="'+(H-b)+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="4 5" opacity=".7"/>';
+  s+='<circle cx="'+xo.toFixed(1)+'" cy="'+yo.toFixed(1)+'" r="5.5" fill="var(--amber)"/>';
+  s+='<text x="'+dlx.toFixed(1)+'" y="'+dly.toFixed(1)+'" font-size="11.5" fill="var(--amber)" text-anchor="'+(flip?'end':'start')+'">'+lbl+'</text>';
+  $('m4G').innerHTML=s;
+}
+
+/* ---------- Step 5: the distorted current ---------- */
+function drawThd(d){
+  var W=760,H=310,l=52,r=14,pw=W-l-r,ymid=140,Av=88;
+  function X(t){ return l+pw*t/40; }
+  var A5=Math.sqrt(0.8), A7=Math.sqrt(0.2);   /* I_5 and I_7 shares of THD·I_1 — A5²+A7² = 1 exactly */
+  function ish(th){ var u=th-d.sg*d.phi; return Math.sin(u)+A5*d.T*Math.sin(5*u)+A7*d.T*Math.sin(7*u); }
+  var k,t,th,vmax=0,val;
+  for(k=0;k<=400;k++){ val=Math.abs(ish(2*PI*(40*k/400)/20)); if(val>vmax) vmax=val; }
+  var Ai=66/Math.max(vmax,1e-9);
+  var vp='',ip='',fp='';
+  for(k=0;k<=400;k++){
+    t=40*k/400; th=2*PI*t/20;
+    vp+=(k?' ':'')+X(t).toFixed(1)+','+(ymid-Av*Math.sin(th)).toFixed(1);
+    ip+=(k?' ':'')+X(t).toFixed(1)+','+(ymid-Ai*ish(th)).toFixed(1);
+    fp+=(k?' ':'')+X(t).toFixed(1)+','+(ymid-Ai*Math.sin(th-d.sg*d.phi)).toFixed(1);
+  }
+  var s='';
+  s+='<line x1="'+l+'" y1="'+ymid+'" x2="'+(W-r)+'" y2="'+ymid+'" stroke="var(--gridline)" stroke-width="1"/>';
+  s+='<line x1="'+l+'" y1="258" x2="'+(W-r)+'" y2="258" stroke="var(--line)" stroke-width="1.5"/>';
+  for(k=0;k<=4;k++){ t=10*k; var tx=X(t);
+    s+='<line x1="'+tx+'" y1="258" x2="'+tx+'" y2="264" stroke="var(--line)" stroke-width="1.2"/>';
+    s+='<text x="'+tx+'" y="280" font-size="11" fill="var(--faint)" text-anchor="middle">'+t+'</text>';
+  }
+  s+='<text x="'+(W-r)+'" y="300" font-size="11" fill="var(--dim)" text-anchor="end">t (ms)</text>';
+  s+='<polyline points="'+vp+'" fill="none" stroke="var(--phB)" stroke-width="1.6" opacity=".75"/>';
+  if(d.T>0.005) s+='<polyline points="'+fp+'" fill="none" stroke="var(--phC)" stroke-width="1.2" stroke-dasharray="3 5" opacity=".55"/>';
+  s+='<polyline points="'+ip+'" fill="none" stroke="var(--phC)" stroke-width="2.4"/>';
+  s+='<text x="'+(l+4)+'" y="24" font-size="12" fill="var(--phB)">v(t) — held sinusoidal</text>';
+  s+='<text x="'+(W-r-4)+'" y="24" font-size="12" fill="var(--phC)" text-anchor="end">i(t) — fundamental + 5th + 7th, THD '+S.thd+' %</text>';
+  $('d5G').innerHTML=s;
+}
+
+/* ---------- render ---------- */
+function render(){
+  var d=derive();
+  $('bP').textContent=nfi(S.P/1e6)+' MW';
+  $('bV').textContent=nfi(S.V/1e3)+' kV';
+  $('bPf').textContent=nf(S.pf,2)+(d.phid<0.01?'':(S.lead?' lead':' lag'));
+  $('bLead').textContent=S.lead?'leading':'lagging';
+  $('bQc').textContent=nf(S.Qc,1).replace(/\.0$/,'')+' MVAr';
+  $('bThd').textContent=S.thd+' %';
+  $('cP').setAttribute('aria-valuetext',nfi(S.P/1e6)+' megawatts');
+  $('cV').setAttribute('aria-valuetext',nfi(S.V/1e3)+' kilovolts');
+  $('cPf').setAttribute('aria-valuetext','cos phi '+nf(S.pf,2)+(d.phid<0.01?'':(S.lead?' leading':' lagging')));
+  $('cQc').setAttribute('aria-valuetext',nf(S.Qc,1)+' megavars of capacitive correction');
+  $('cThd').setAttribute('aria-valuetext',S.thd+' percent current distortion');
+
+  up('hI',nf(d.Ic,1)); up('hIu',nf(d.Iu,1)); up('hIpc',nf(100*(d.Ic/d.Iu-1),2));
+  up('hQ',nf(Math.abs(d.Qn)/1e6,1));
+  up('hQs', d.Qn>1e3?'lagging — the bus absorbs vars':(d.Qn<-1e3?'leading — the bus supplies vars':'fully corrected — no vars'));
+  up('hMult','×'+nf(d.mult,3));
+  up('dTpf',nf(d.tpf,3)); up('dI',nf(d.Ic,1));
+
+  /* step 1 */
+  up('w1Phi',nf(d.phid,2)+'°'+(d.phid<0.01?'':(S.lead?' lead':' lag')));
+  up('w1Pf',nf(S.pf,2));
+  up('w1Dt',nf(d.dt,3)+' ms');
+  up('w1Vp',nf(R2*d.VLN/1e3,1)+' kV');
+  up('w1Ip',nf(R2*d.I1,1)+' A');
+  drawWave1(d);
+
+  /* step 2 */
+  drawP2(d);
+
+  /* step 3 */
+  up('t3S',nf(d.Sn/1e6,1)+' MVA');
+  up('t3Qn',nf(Math.abs(d.Qn)/1e6,1)+' MVAr'+tagLL(d.Qn));
+  up('t3Phi',nf(Math.abs(d.phidC),2)+'°'+tagLL(d.Qn));
+  up('t3Pf',nf(d.pfC,3)+tagLL(d.Qn));
+  up('t3I',nf(d.Ic,1)+' A');
+  if(S.lead && d.Q<-1e3){
+    var QL=(Math.abs(d.Q)-S.P*Math.tan(Math.acos(0.95)))/1e6;
+    $('t3Note').innerHTML = QL>0.5
+      ? 'This load is <b>leading</b> — it already supplies vars, so capacitors are the wrong tool: every MVAr of Q_c pushes the bus further from unity. Reaching 0.95 lead needs <b>inductive</b> (shunt reactor) compensation absorbing '+nf(QL,1)+' MVAr, which this slider cannot provide.'
+      : 'This leading load is already at 0.95 or better — no correction needed. Adding Q_c would only push the bus further leading, away from unity.';
+  } else if(d.Qc95>300e6){
+    $('t3Note').innerHTML='Correcting this load to 0.95 lag takes <b style="color:var(--good)">Q_c = '+nf(d.Qc95/1e6,1)+' MVAr</b> — more than the 300 MVAr bank on this slider. Snap caps the bank at 300 MVAr, leaving the bus '+nf((d.Qc95-300e6)/1e6,1)+' MVAr short of 0.95.';
+  } else if(d.Qc95>0.5e6){
+    $('t3Note').innerHTML='Correcting this load to 0.95 lag takes <b style="color:var(--good)">Q_c = '+nf(d.Qc95/1e6,1)+' MVAr</b> — the line current falls from '+nf(d.I1,1)+' A (uncorrected) to <b style="color:var(--amber)">'+nf(d.I95,1)+' A</b>.';
+  } else {
+    $('t3Note').innerHTML='This load is already at or better than 0.95 lag — no capacitors needed. Q_c beyond the load\'s own vars only swings the bus leading.';
+  }
+  drawTri(d);
+
+  /* step 4 */
+  up('m4X','×'+nf(d.mult,3));
+  up('m4Loss',mw(d.loss)+' MW');
+  up('m4U',mw(d.lossU)+' MW');
+  up('m4Extra','+'+mw(d.extra)+' MW');
+  up('m4Year',nf(d.extra*8760/1e9,1)+' GWh');
+  up('m4Cost','≈ A$'+nf(d.extra*8760/1e9*0.1,1)+'M / yr');
+  drawMult(d);
+
+  /* step 5 */
+  up('d5Phi',nf(S.pf,2)+' — unchanged');
+  up('d5Dpf',nf(d.dpf,4));
+  up('d5Tpf',nf(d.tpf,4)+tagLL(d.Qn));
+  up('d5Irms',nf(d.Irms,1)+' A');
+  up('d5X','×'+nf(1+d.T*d.T,2)+' on 1/pf²');
+  drawThd(d);
+
+  /* step 6 */
+  var d40=1/Math.sqrt(1+0.16);
+  up('mA1',nf((d.S1-S.P)/1e6,1));
+  up('mA2',nf(Math.abs(d.Q)/1e6,1)+' MVAr');
+  up('mB1',nf(d.pfC,2));
+  up('mB2',nf(d.pfC*d40,3));
+  up('mB3','×'+nf(d40,2));
+  var Qo=d.Q-250e6, So=Math.hypot(S.P,Qo);
+  up('mC1',nf(Math.abs(Qo)/1e6,1)+' MVAr'+(Qo<-1e3?' LEADING':(Qo>1e3?' lagging':'')));
+  up('mC2',nf(S.P/So,3)+(Qo<-1e3?' lead':(Qo>1e3?' lag':'')));
+  up('mC3',nf(So/(SQ3*S.V),1));
+  up('mC4',nf(d.Iu,1));
+}
+
+/* ---------- wiring ---------- */
+function bind(id,fn){ $(id).addEventListener('input',function(e){ fn(parseFloat(e.target.value)); render(); }); }
+bind('cP', function(v){ S.P=v*1e6; });
+bind('cV', function(v){ S.V=v*1e3; });
+bind('cPf',function(v){ S.pf=v; });
+bind('cQc',function(v){ S.Qc=v; });
+bind('cThd',function(v){ S.thd=v; });
+
+$('leadBtn').addEventListener('click',function(){
+  S.lead=!S.lead;
+  this.setAttribute('aria-pressed',S.lead?'true':'false');
+  render();
+});
+$('humpBtn').addEventListener('click',function(){
+  S.hump=!S.hump; this.setAttribute('aria-pressed',S.hump?'true':'false'); render();
+});
+$('sloshBtn').addEventListener('click',function(){
+  S.slosh=!S.slosh; this.setAttribute('aria-pressed',S.slosh?'true':'false'); render();
+});
+$('snapBtn').addEventListener('click',function(){
+  if(S.lead) return;                    /* leading bus: capacitors cannot reach 0.95 — leave Q_c alone */
+  var d=derive();
+  S.Qc=Math.min(300,Math.max(0,Math.round(d.Qc95/1e6)));  /* integer MVAr — state, badge and thumb agree at step=1 */
+  $('cQc').value=S.Qc;
+  render();
+});
+
+var deckWrap=$('deckWrap');
+new IntersectionObserver(function(en){
+  deckWrap.classList.toggle('stuck', !en[0].isIntersecting);
+},{rootMargin:'-1px 0px 0px 0px',threshold:0}).observe($('deckSentinel'));
+$('deckToggle').addEventListener('click',function(){
+  var m=deckWrap.classList.toggle('min');
+  this.setAttribute('aria-expanded', String(!m));
+  this.textContent=m?'Show controls ▾':'Hide ▴';
+});
+
+/* assumption chips — tap to unfold the fine print */
+var ledger=$('ledger'), activeChip=null;
+Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){
+  c.setAttribute('role','button'); c.setAttribute('aria-pressed','false'); c.tabIndex=0; c.title=c.dataset.d;
+  function fire(){
+    if(activeChip===c){ c.setAttribute('aria-pressed','false'); ledger.hidden=true; activeChip=null; return; }
+    if(activeChip) activeChip.setAttribute('aria-pressed','false');
+    activeChip=c; c.setAttribute('aria-pressed','true');
+    ledger.textContent=c.dataset.d; ledger.hidden=false;
+  }
+  c.addEventListener('click',fire);
+  c.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fire(); } });
+});
+
+/* back to the set question */
+$('resetBtn').addEventListener('click',function(){
+  S.P=300e6; S.V=275e3; S.pf=0.85; S.lead=false; S.Qc=0; S.thd=0;
+  $('cP').value=300; $('cV').value=275; $('cPf').value=0.85; $('cQc').value=0; $('cThd').value=0;
+  $('leadBtn').setAttribute('aria-pressed','false');
+  render();
+});
+
+render();
+})();
+//JS-END
+</script>
+</body>
+</html>
