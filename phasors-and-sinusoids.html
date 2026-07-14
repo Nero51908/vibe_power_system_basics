@@ -579,9 +579,12 @@ function dyn2(d){
   var a=r1(d.Vpk*vaF(fr)/1e3), b=r1(d.Vpk*vbF(fr)/1e3), c=r1(d.Vpk*vcF(fr)/1e3);
   var z=(Math.round(a*10)+Math.round(b*10)+Math.round(c*10))/10;
   var f1=function(x){ return x<0?'(−'+nf(-x,1)+')':nf(x,1); };
-  $('sumRow').innerHTML='v_a + v_b + v_c &nbsp;=&nbsp; '+f1(a)+' + '+f1(b)+' + '+f1(c)
-    +' &nbsp;=&nbsp; <b>'+nm(z,1)+' kV</b> — at this frame, and every other'
-    +(z!==0?' (display rounding — the exact sum is 0)':'');
+  /* pad each field to a fixed monospace width with &nbsp; so terms don't shift
+     sideways as signs flip; note is unconditional so the line never changes length */
+  var pad=function(t,w){ var p=''; for(var i=t.length;i<w;i++) p+='&nbsp;'; return p+t; };
+  $('sumRow').innerHTML='v_a + v_b + v_c &nbsp;=&nbsp; '+pad(f1(a),8)+' + '+pad(f1(b),8)+' + '+pad(f1(c),8)
+    +' &nbsp;=&nbsp; <b>'+pad(nm(z,1),4)+' kV</b> — at this frame, and every other'
+    +' (display rounding — the exact sum is 0)';
 }
 function dyn3(d){
   var fr=Math.min(S.t/d.T,1), ang=2*PI*fr, angI=ang-d.phiR;
