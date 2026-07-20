@@ -204,7 +204,7 @@ footer code{color:var(--dim)}
         <input type="range" id="cR" min="0.02" max="0.12" step="0.005" value="0.05" aria-label="Resistance per kilometre"></div>
       <div class="ctl"><label>Reactance x_L <span class="badge" id="bXl">0.32 Ω/km</span></label>
         <input type="range" id="cXl" min="0" max="0.45" step="0.01" value="0.32" aria-label="Series reactance per kilometre"></div>
-      <div class="note">P and V_LL are receiving-end quantities. r is the 50&nbsp;Hz value at operating temperature (skin effect and heat both raise it). x_L drives the walk-the-line panel only — losses use R alone, because reactance dissipates nothing.</div>
+      <div class="note">P and V_LL are receiving-end quantities (that's the R in Step 3's V_R). r is the 50&nbsp;Hz value at operating temperature (skin effect and heat both raise it). x_L drives the walk-the-line panel only — losses use R alone, because reactance dissipates nothing.</div>
     </div>
   </div>
   </div>
@@ -216,7 +216,7 @@ footer code{color:var(--dim)}
     <div class="chips">
       <span class="chip" data-d="Equal magnitudes, exactly 120° apart, identical impedances. This is what licenses per-phase analysis and makes the neutral current zero.">balanced · three-wire</span>
       <span class="chip" data-d="Phasors are RMS values of 50 Hz sinusoids. No harmonics — with distortion, cos φ is only the displacement power factor.">sinusoidal · RMS · 50 Hz</span>
-      <span class="chip" data-d="'Delivers 300 MW at 275 kV to a load' pins both numbers to the receiving end. The same current flows the whole length once shunt paths are ignored.">P, V at receiving end</span>
+      <span class="chip" data-d="'Delivers 300 MW at 275 kV to a load' pins both numbers to the receiving end — the R in Step 3's V_R. The same current flows the whole length once shunt paths are ignored.">P, V at receiving end</span>
       <span class="chip" data-d="φ is the angle between element voltage and element current — not between V_LL and I_L, which differ by an extra 30°.">φ = angle(V_ph, I_ph)</span>
       <span class="chip" data-d="Series reactance X shifts phase and exchanges vars but dissipates nothing; it changes the sending-end voltage, not the losses. Shunt charging is excluded by the problem.">only R dissipates</span>
       <span class="chip" data-d="No neutral conductor exists on the line, and balance means no return current anyway. The earthwire on the towers is lightning shielding and stays essentially idle.">no neutral-conductor loss</span>
@@ -228,39 +228,39 @@ footer code{color:var(--dim)}
   <section id="perphase">
     <div class="step">Step 1 · One phase tells the whole story</div>
     <h2>The per-phase circuit — with the wire we don't build</h2>
-    <p>Balance lets you collapse three phases into one single-phase circuit between a line and the <b>neutral reference</b>. Its source is V_LN = V_LL/√3, it carries one third of the power, and its return rail is the neutral — which carries no current, which is exactly why the real line has three wires, not four.</p>
+    <p>Balance lets you collapse three phases into one single-phase circuit between a line and the <b>neutral reference</b>. The problem pins both givens at the <b>receiving end</b>: V_LN = V_LL/√3 across the load, one third of the power through it. The sending-end source on the right is whatever the line demands — Step 3 walks there. The return rail is the neutral — which carries no current, which is exactly why the real line has three wires, not four.</p>
     <div class="panel">
-      <svg viewBox="0 0 660 210" role="img" aria-label="Per-phase equivalent circuit: source, series resistance, load, dashed neutral return">
+      <svg viewBox="0 0 660 210" role="img" aria-label="Per-phase equivalent circuit, receiving end on the left: load with the given voltage, series conductor resistance, sending-end source on the right, dashed neutral return">
+        <!-- load (receiving end — where the givens are pinned) -->
+        <rect x="80" y="55" width="150" height="86" rx="8" fill="var(--panel2)" stroke="var(--line)"/>
+        <text x="155" y="86" font-size="12" fill="var(--text)" text-anchor="middle">load  ⅓ × P</text>
+        <text x="155" y="106" font-size="12.5" fill="var(--amber)" text-anchor="middle"><tspan id="pcPph">100.0</tspan> MW · pf <tspan id="pcPf">1.00</tspan></text>
+        <line x1="155" y1="141" x2="155" y2="152" stroke="var(--dim)" stroke-width="2"/>
+        <text x="155" y="176" font-size="12" fill="var(--text)" text-anchor="middle">V_LN = <tspan id="pcVln" fill="var(--amber)">158.8</tspan> kV ∠0°</text>
         <!-- top rail -->
-        <line x1="96" y1="70" x2="205" y2="70" stroke="var(--dim)" stroke-width="2"/>
-        <line x1="325" y1="70" x2="430" y2="70" stroke="var(--dim)" stroke-width="2"/>
-        <!-- source -->
-        <circle cx="70" cy="98" r="27" fill="none" stroke="var(--phA)" stroke-width="2"/>
-        <path d="M56,98 q7,-13 14,0 q7,13 14,0" fill="none" stroke="var(--phA)" stroke-width="2"/>
-        <line x1="70" y1="71" x2="70" y2="70" stroke="var(--dim)" stroke-width="2"/>
-        <line x1="70" y1="70" x2="96" y2="70" stroke="var(--dim)" stroke-width="2"/>
-        <line x1="70" y1="125" x2="70" y2="152" stroke="var(--dim)" stroke-width="2"/>
-        <text x="70" y="176" font-size="12" fill="var(--text)" text-anchor="middle">V_LN = <tspan id="pcVln" fill="var(--amber)">158.8</tspan> kV ∠0°</text>
-        <!-- resistor zigzag -->
-        <polyline points="205,70 213,56 229,84 245,56 261,84 277,56 293,84 309,56 317,70 325,70" fill="none" stroke="var(--amber)" stroke-width="2.5"/>
-        <text x="265" y="40" font-size="12.5" fill="var(--text)" text-anchor="middle">R = <tspan id="pcR" fill="var(--amber)">6.00</tspan> Ω  <tspan fill="var(--faint)" font-size="10.5">(<tspan id="pcRcalc">0.050 × 120 km</tspan>)</tspan></text>
-        <text x="265" y="108" font-size="11.5" fill="var(--dim)" text-anchor="middle">I·R drop = <tspan id="pcDrop">3.78</tspan> kV  (<tspan id="pcDropPct">2.4</tspan>% of V_LN)</text>
-        <!-- current arrow -->
-        <line x1="120" y1="55" x2="168" y2="55" stroke="var(--phC)" stroke-width="2"/>
-        <polygon points="168,55 158,50 158,60" fill="var(--phC)"/>
-        <text x="143" y="30" font-size="12" fill="var(--phC)" text-anchor="middle">I = <tspan id="pcI">629.8</tspan> A</text>
-        <!-- load -->
-        <rect x="430" y="55" width="150" height="86" rx="8" fill="var(--panel2)" stroke="var(--line)"/>
-        <text x="505" y="86" font-size="12" fill="var(--text)" text-anchor="middle">load  ⅓ × P</text>
-        <text x="505" y="106" font-size="12.5" fill="var(--amber)" text-anchor="middle"><tspan id="pcPph">100.0</tspan> MW · pf <tspan id="pcPf">1.00</tspan></text>
-        <line x1="505" y1="141" x2="505" y2="152" stroke="var(--dim)" stroke-width="2"/>
+        <line x1="230" y1="70" x2="305" y2="70" stroke="var(--dim)" stroke-width="2"/>
+        <line x1="425" y1="70" x2="590" y2="70" stroke="var(--dim)" stroke-width="2"/>
+        <!-- resistor zigzag (the conductor) -->
+        <polyline points="305,70 313,56 329,84 345,56 361,84 377,56 393,84 409,56 417,70 425,70" fill="none" stroke="var(--amber)" stroke-width="2.5"/>
+        <text x="365" y="40" font-size="12.5" fill="var(--text)" text-anchor="middle">R = <tspan id="pcR" fill="var(--amber)">6.00</tspan> Ω  <tspan fill="var(--faint)" font-size="10.5">(<tspan id="pcRcalc">0.050 × 120 km</tspan>)</tspan></text>
+        <text x="365" y="108" font-size="11.5" fill="var(--dim)" text-anchor="middle">I·R drop = <tspan id="pcDrop">3.78</tspan> kV  (<tspan id="pcDropPct">2.4</tspan>% of V_LN)</text>
+        <!-- current arrow: source feeds the load, right to left -->
+        <line x1="530" y1="55" x2="482" y2="55" stroke="var(--phC)" stroke-width="2"/>
+        <polygon points="482,55 492,50 492,60" fill="var(--phC)"/>
+        <text x="505" y="46" font-size="12" fill="var(--phC)" text-anchor="middle">I = <tspan id="pcI">629.8</tspan> A</text>
+        <!-- sending-end source (deliberately unnumbered) -->
+        <circle cx="590" cy="98" r="27" fill="none" stroke="var(--phA)" stroke-width="2"/>
+        <path d="M576,98 q7,-13 14,0 q7,13 14,0" fill="none" stroke="var(--phA)" stroke-width="2"/>
+        <line x1="590" y1="71" x2="590" y2="70" stroke="var(--dim)" stroke-width="2"/>
+        <line x1="590" y1="125" x2="590" y2="152" stroke="var(--dim)" stroke-width="2"/>
+        <text x="590" y="176" font-size="12" fill="var(--dim)" text-anchor="middle">sending end (V_S)</text>
         <!-- neutral rail -->
-        <line x1="70" y1="152" x2="505" y2="152" stroke="var(--faint)" stroke-width="1.6" stroke-dasharray="7 6"/>
-        <text x="288" y="196" font-size="11.5" fill="var(--faint)" text-anchor="middle">neutral reference — carries 0 A when balanced: the wire the line doesn't build</text>
+        <line x1="155" y1="152" x2="590" y2="152" stroke="var(--faint)" stroke-width="1.6" stroke-dasharray="7 6"/>
+        <text x="372" y="196" font-size="11.5" fill="var(--faint)" text-anchor="middle">neutral reference — carries 0 A when balanced: the wire the line doesn't build</text>
         <!-- loss badge -->
-        <text x="265" y="22" font-size="12" fill="var(--good)" text-anchor="middle">this conductor burns I²R = <tspan id="pcLossOne">2.38</tspan> MW  →  ×3 phases = <tspan id="pcLossAll" font-weight="600">7.14</tspan> MW</text>
+        <text x="365" y="22" font-size="12" fill="var(--good)" text-anchor="middle">this conductor burns I²R = <tspan id="pcLossOne">2.38</tspan> MW  →  ×3 phases = <tspan id="pcLossAll" font-weight="600">7.14</tspan> MW</text>
       </svg>
-      <div class="svgcap">Sanity check the current here: I = (P/3) / (V_LN · cos φ). If you pasted V_LL into this circuit instead, you'd get a current √3 too small — and losses exactly 3× too small. That factor of 3 is a diagnostic fingerprint.</div>
+      <div class="svgcap">Drawn receiving end first — the same left-to-right geography as Step 3's walk. Sanity check the current here: I = (P/3) / (V_LN · cos φ). If you pasted V_LL into this circuit instead, you'd get a current √3 too small — and losses exactly 3× too small. That factor of 3 is a diagnostic fingerprint. The sending end is deliberately unnumbered: R alone can't price it — Step 3, with x_L in hand, walks there.</div>
     </div>
   </section>
 
@@ -318,7 +318,7 @@ footer code{color:var(--dim)}
   <section id="walk">
     <div class="step">Step 3 · Where you stand changes what you read</div>
     <h2>Walk the line — power factor is a property of a cross-section</h2>
-    <p>On a series line the current phasor is the same everywhere, so as you walk from the load toward the source all the movement is in <b>V(x) = V_R + I·(r + j·x_L)·x</b>. The resistive drop stretches V along I; the reactive drop is perpendicular and <b>rotates</b> it. The local angle φ(x) between V(x) and I — and with it the local power factor — drifts with position: your unity-pf load, read from 120 km away, is not unity any more.</p>
+    <p>On a series line the current phasor is the same everywhere, so as you walk from the load toward the source — left to right, straight along the Step 1 circuit — all the movement is in <b>V(x) = V_R + I·(r + j·x_L)·x</b>. (The subscript is R for <b>receiving end</b>, the load terminals — not the resistance R.) The resistive drop stretches V along I; the reactive drop is perpendicular and <b>rotates</b> it. The local angle φ(x) between V(x) and I — and with it the local power factor — drifts with position: your unity-pf load, read from 120 km away, is not unity any more.</p>
     <div class="panel">
       <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:8px">
         <div class="ctl" style="flex:1 1 260px;max-width:440px">
@@ -337,7 +337,7 @@ footer code{color:var(--dim)}
             </defs>
             <g id="walkG"></g>
           </svg>
-          <div class="svgcap">V_R held as reference. Green: the I·R drop, parallel to I. Blue: the j·I·X drop, perpendicular — the piece that rotates V and drags the local pf off unity. The magnifier stretches the drawn drops (and therefore the drawn angles); every number stays true.</div>
+          <div class="svgcap">V_R — the receiving-end (load) voltage — held as reference. Green: the I·R drop, parallel to I. Blue: the j·I·X drop, perpendicular — the piece that rotates V and drags the local pf off unity. The magnifier stretches the drawn drops (and therefore the drawn angles); every number stays true.</div>
         </div>
         <div class="readouts">
           <div class="stat"><div class="k">Local line-to-line |V(x)|</div><div class="v" id="wVll">–</div></div>
@@ -615,7 +615,7 @@ function drawWalk(d){
   g+='<line x1="18" y1="'+OY+'" x2="445" y2="'+OY+'" stroke="var(--gridline)" stroke-width="1"/>';
   // V_R (reference)
   g+='<line x1="'+OX+'" y1="'+OY+'" x2="'+(OX+k*d.VLN).toFixed(1)+'" y2="'+OY+'" stroke="var(--dim)" stroke-width="2.2" marker-end="url(#wW)"/>';
-  g+='<text x="'+(OX+k*d.VLN*0.5).toFixed(1)+'" y="'+(OY+18)+'" font-size="12" fill="var(--dim)" text-anchor="middle">V_R  (load end, reference)</text>';
+  g+='<text x="'+(OX+k*d.VLN*0.5).toFixed(1)+'" y="'+(OY+18)+'" font-size="12" fill="var(--dim)" text-anchor="middle">V_R — receiving (load) end, reference</text>';
   // I at −φ
   var ix=OX+72*Math.cos(ph), iy=OY+72*Math.sin(ph);
   g+='<line x1="'+OX+'" y1="'+OY+'" x2="'+ix.toFixed(1)+'" y2="'+iy.toFixed(1)+'" stroke="var(--text)" stroke-width="1.6" stroke-dasharray="3 4" marker-end="url(#wT)"/>';
