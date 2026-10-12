@@ -59,7 +59,7 @@ h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(30px,5vw,52p
 /* ---------- control deck (sticky) ---------- */
 #deckSentinel{height:1px}
 .deck-wrap{position:sticky;top:0;z-index:60;background:var(--ink);padding:10px 0 8px;margin:18px 0 40px}
-.deck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 10px;transition:box-shadow .2s,border-color .2s,padding .2s}
+.deck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 10px;transition:box-shadow .2s,border-color .2s}
 .deck-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 .deck-head .spacer{flex:1 1 auto}
 .deck h2{margin:0 0 4px;font-family:'Archivo';font-size:15px;font-weight:700;letter-spacing:.04em}
@@ -266,7 +266,7 @@ footer code{color:var(--dim)}
   <section id="triangle">
     <div class="step">Step 3 · Apparent power</div>
     <h2>The triangle you pay for</h2>
-    <p>Average the hump and the slosh separately and you get the power triangle: P on the horizontal, Q on the vertical, and the hypotenuse S&nbsp;=&nbsp;√(P²+Q²) — the quantity the conductors actually feel, because <b>the amperes follow S, not P</b>. Capacitors at the bus supply vars locally, eating the vertical leg from below: slide Q_c and watch the hypotenuse — and the current — shrink.</p>
+    <p>Average the hump and the slosh separately and you get the power triangle: P on the horizontal, Q on the vertical, and the hypotenuse S&nbsp;=&nbsp;√(P²+Q²) — the quantity the conductors actually feel, because <b>the amperes follow S, not P</b>. Capacitors at the bus supply vars locally, eating the vertical leg from the top down: slide Q_c and watch the hypotenuse — and the current — shrink.</p>
     <div class="panel duo">
       <div>
         <svg id="triSvg" viewBox="0 0 660 380" role="img" aria-label="Live power triangle with capacitor correction eating the reactive leg">
@@ -277,7 +277,7 @@ footer code{color:var(--dim)}
           </defs>
           <g id="t3G"></g>
         </svg>
-        <div class="svgcap">Drawn on the current's side of the axis: a lagging current hangs below its voltage, so its vars hang below the P axis. Push Q_c past Q and the triangle flips <b>above</b> the axis — the bus is now leading, and the hypotenuse starts growing again. Overcorrection is just undercorrection in a mirror.</div>
+        <div class="svgcap">Drawn to the S = V·I* convention (IEEE Std 1459 and every current textbook): the conjugate turns the current's −φ lag into +φ, so an inductive load has <b>positive</b> Q and its vars stand <b>above</b> the P axis even though the current itself lags. Push Q_c past Q and the triangle flips <b>below</b> the axis — the bus is now leading, and the hypotenuse starts growing again. Overcorrection is just undercorrection in a mirror.</div>
       </div>
       <div class="readouts">
         <div class="stat hot"><div class="k">Apparent power S (line)</div><div class="v" id="t3S">–</div></div>
@@ -532,7 +532,7 @@ function drawTri(d){
   var W=660,x0=70,y0=190;
   var Pm=S.P/1e6, Qm=d.Q/1e6, Qnm=d.Qn/1e6;
   var k=Math.min(430/Pm, 146/Math.max(Math.abs(Qm),Math.abs(Qnm),1));
-  var Bx=x0+k*Pm, Cy=y0+k*Qm, Cny=y0+k*Qnm;   /* screen y grows downward = lagging side */
+  var Bx=x0+k*Pm, Cy=y0-k*Qm, Cny=y0-k*Qnm;   /* S = V·I* convention: lagging Q > 0 is drawn UP (screen y grows downward) */
   var lagSide=(Qm>=0);
   var degen=Math.abs(Qm)<0.02*Pm;             /* unity-ish load: the triangle closes onto the P axis */
   var qly=null;                               /* Q-leg label baseline, for de-collision with the Q_c label */
@@ -541,7 +541,11 @@ function drawTri(d){
   s+='<text x="'+(W-12)+'" y="'+(y0-6)+'" font-size="11" fill="var(--faint)" text-anchor="end">P axis</text>';
   /* P leg */
   s+='<line x1="'+x0+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+y0+'" stroke="var(--good)" stroke-width="3" marker-end="url(#m3G)"/>';
-  s+='<text x="'+((x0+Bx)/2).toFixed(1)+'" y="'+(y0+(lagSide?-10:22))+'" font-size="12.5" fill="var(--good)" text-anchor="middle">P = '+nfi(Pm)+' MW</text>';
+  /* P label sits on the empty side of the axis; when Q_c overshoots and S' crosses onto that
+     side, tuck it inside the triangle at the B end instead so the dashed S' never strikes it */
+  var cross=(S.Qc>0.5)&&((Qnm>=0)!==lagSide);
+  if(cross) s+='<text x="'+(Bx-8).toFixed(1)+'" y="'+(y0+(lagSide?-10:22))+'" font-size="12.5" fill="var(--good)" text-anchor="end">P = '+nfi(Pm)+' MW</text>';
+  else      s+='<text x="'+((x0+Bx)/2).toFixed(1)+'" y="'+(y0+(lagSide?22:-10))+'" font-size="12.5" fill="var(--good)" text-anchor="middle">P = '+nfi(Pm)+' MW</text>';
   /* Q leg */
   if(Math.abs(Cy-y0)>3){
     s+='<line x1="'+Bx.toFixed(1)+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+Cy.toFixed(1)+'" stroke="var(--phC)" stroke-width="3" marker-end="url(#m3B)"/>';
@@ -556,7 +560,7 @@ function drawTri(d){
   if(degen){
     s+='<text x="'+clampX((x0+Bx)/2,123,W).toFixed(1)+'" y="'+(y0-30)+'" font-size="12.5" fill="var(--amber)" text-anchor="middle">unity — the triangle closes: S = P</text>';
   } else {
-    var sy=(y0+Cy)/2+(lagSide?-10:20);
+    var sy=(y0+Cy)/2+(lagSide?20:-10);
     s+='<text x="'+((x0+Bx)/2-10).toFixed(1)+'" y="'+sy.toFixed(1)+'" font-size="12.5" fill="var(--amber)" text-anchor="end">S = '+nf(d.S1/1e6,1)+' MVA</text>';
   }
   /* Q_c arrow eats the vertical leg */
@@ -569,10 +573,10 @@ function drawTri(d){
     /* corrected hypotenuse */
     s+='<line x1="'+x0+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+Cny.toFixed(1)+'" stroke="var(--amber)" stroke-width="2" stroke-dasharray="7 5"/>';
     var spl="S' = "+nf(d.Sn/1e6,1)+' MVA';
-    s+='<text x="'+Math.max(Bx-10,8+7.2*spl.length).toFixed(1)+'" y="'+(Cny+(Qnm>=0?24:-14)).toFixed(1)+'" font-size="12" fill="var(--amber)" text-anchor="end">'+spl+'</text>';
+    s+='<text x="'+Math.max(Bx-10,8+7.2*spl.length).toFixed(1)+'" y="'+(Cny+(Qnm>=0?-14:24)).toFixed(1)+'" font-size="12" fill="var(--amber)" text-anchor="end">'+spl+'</text>';
   }
   /* phi arc */
-  var aS=-Math.atan2(Qm,Pm);
+  var aS=Math.atan2(Qm,Pm);                    /* +ve (anticlockwise) for a lagging load, like the triangle */
   if(Math.abs(aS)>0.05){
     var arc='',q,aa;
     for(q=0;q<=16;q++){ aa=aS*q/16; arc+=(q?'L':'M')+(x0+46*Math.cos(aa)).toFixed(1)+','+(y0-46*Math.sin(aa)).toFixed(1); }
@@ -580,7 +584,7 @@ function drawTri(d){
     s+='<text x="'+(x0+62*Math.cos(aS/2)).toFixed(1)+'" y="'+(y0-62*Math.sin(aS/2)+4).toFixed(1)+'" font-size="11.5" fill="var(--amber)">φ = '+nf(d.phid,1)+'°</text>';
   }
   if(S.Qc>0.5){
-    var aN=-Math.atan2(Qnm,Pm);
+    var aN=Math.atan2(Qnm,Pm);
     if(Math.abs(aN)>0.03){
       var arc2='',q2,a2;
       for(q2=0;q2<=16;q2++){ a2=aN*q2/16; arc2+=(q2?'L':'M')+(x0+26*Math.cos(a2)).toFixed(1)+','+(y0-26*Math.sin(a2)).toFixed(1); }
@@ -773,14 +777,44 @@ $('snapBtn').addEventListener('click',function(){
   render();
 });
 
-var deckWrap=$('deckWrap');
-new IntersectionObserver(function(en){
-  deckWrap.classList.toggle('stuck', !en[0].isIntersecting);
-},{rootMargin:'-1px 0px 0px 0px',threshold:0}).observe($('deckSentinel'));
+/* sticky deck — condense without reflowing the page. Shrinking the deck in flow shortens the
+   document under the reader; the browser's scroll anchoring scrolls back to compensate, the
+   sentinel re-appears, the deck re-expands, and so on: a snap-back loop on slow or arrow-key
+   scrolling. So the deck keeps a constant flow footprint — the height it gives up when it
+   condenses is parked in its bottom margin, and it condenses only once it has been pinned
+   for exactly that distance, so the content below never moves. */
+var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckStuck=false, deckRaf=0;
+function measureDeck(){
+  var root=document.documentElement, was=deckWrap.classList.contains('stuck'), cs, H, h;
+  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page */
+  deckWrap.style.marginBottom='';
+  deckWrap.classList.remove('stuck'); H=deckWrap.getBoundingClientRect().height;   /* sub-pixel, so the margin swap is exact */ cs=getComputedStyle(deckWrap);
+  deckMb=parseFloat(cs.marginBottom)||0;
+  deckTop=deckSent.getBoundingClientRect().bottom+window.scrollY+(parseFloat(cs.marginTop)||0);
+  deckWrap.classList.add('stuck'); h=deckWrap.getBoundingClientRect().height;
+  deckWrap.classList.toggle('stuck',was);
+  deckDelta=Math.max(0,H-h);
+  if(was) deckWrap.style.marginBottom=(deckMb+deckDelta)+'px';
+  root.style.overflowAnchor='';
+}
+function placeDeck(){
+  var st=window.scrollY>=deckTop+deckDelta;
+  if(st===deckStuck) return;
+  deckStuck=st;
+  deckWrap.classList.toggle('stuck',st);
+  deckWrap.style.marginBottom=st?(deckMb+deckDelta)+'px':'';
+}
+function remeasureDeck(){ if(!deckRaf) deckRaf=requestAnimationFrame(function(){ deckRaf=0; measureDeck(); placeDeck(); }); }
+window.addEventListener('scroll',placeDeck,{passive:true});
+window.addEventListener('resize',remeasureDeck);
+window.addEventListener('load',remeasureDeck);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(remeasureDeck);
+measureDeck(); placeDeck();
 $('deckToggle').addEventListener('click',function(){
   var m=deckWrap.classList.toggle('min');
   this.setAttribute('aria-expanded', String(!m));
   this.textContent=m?'Show controls ▾':'Hide ▴';
+  measureDeck(); placeDeck();                       /* .min changes both heights, so re-measure */
 });
 
 /* assumption chips — tap to unfold the fine print */

@@ -58,7 +58,7 @@ h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(30px,5vw,52p
 /* ---------- control deck (sticky) ---------- */
 #deckSentinel{height:1px}
 .deck-wrap{position:sticky;top:0;z-index:60;background:var(--ink);padding:10px 0 8px;margin:18px 0 40px}
-.deck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 10px;transition:box-shadow .2s,border-color .2s,padding .2s}
+.deck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px 10px;transition:box-shadow .2s,border-color .2s}
 .deck-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 .deck-head .spacer{flex:1 1 auto}
 .deck h2{margin:0 0 4px;font-family:'Archivo';font-size:15px;font-weight:700;letter-spacing:.04em}
@@ -773,14 +773,44 @@ $('logBtn').addEventListener('click',function(){
   render();
 });
 
-var deckWrap=$('deckWrap');
-new IntersectionObserver(function(en){
-  deckWrap.classList.toggle('stuck', !en[0].isIntersecting);
-},{rootMargin:'-1px 0px 0px 0px',threshold:0}).observe($('deckSentinel'));
+/* sticky deck — condense without reflowing the page. Shrinking the deck in flow shortens the
+   document under the reader; the browser's scroll anchoring scrolls back to compensate, the
+   sentinel re-appears, the deck re-expands, and so on: a snap-back loop on slow or arrow-key
+   scrolling. So the deck keeps a constant flow footprint — the height it gives up when it
+   condenses is parked in its bottom margin, and it condenses only once it has been pinned
+   for exactly that distance, so the content below never moves. */
+var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckStuck=false, deckRaf=0;
+function measureDeck(){
+  var root=document.documentElement, was=deckWrap.classList.contains('stuck'), cs, H, h;
+  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page */
+  deckWrap.style.marginBottom='';
+  deckWrap.classList.remove('stuck'); H=deckWrap.getBoundingClientRect().height;   /* sub-pixel, so the margin swap is exact */ cs=getComputedStyle(deckWrap);
+  deckMb=parseFloat(cs.marginBottom)||0;
+  deckTop=deckSent.getBoundingClientRect().bottom+window.scrollY+(parseFloat(cs.marginTop)||0);
+  deckWrap.classList.add('stuck'); h=deckWrap.getBoundingClientRect().height;
+  deckWrap.classList.toggle('stuck',was);
+  deckDelta=Math.max(0,H-h);
+  if(was) deckWrap.style.marginBottom=(deckMb+deckDelta)+'px';
+  root.style.overflowAnchor='';
+}
+function placeDeck(){
+  var st=window.scrollY>=deckTop+deckDelta;
+  if(st===deckStuck) return;
+  deckStuck=st;
+  deckWrap.classList.toggle('stuck',st);
+  deckWrap.style.marginBottom=st?(deckMb+deckDelta)+'px':'';
+}
+function remeasureDeck(){ if(!deckRaf) deckRaf=requestAnimationFrame(function(){ deckRaf=0; measureDeck(); placeDeck(); }); }
+window.addEventListener('scroll',placeDeck,{passive:true});
+window.addEventListener('resize',remeasureDeck);
+window.addEventListener('load',remeasureDeck);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(remeasureDeck);
+measureDeck(); placeDeck();
 $('deckToggle').addEventListener('click',function(){
   var m=deckWrap.classList.toggle('min');
   this.setAttribute('aria-expanded', String(!m));
   this.textContent=m?'Show controls ▾':'Hide ▴';
+  measureDeck(); placeDeck();                       /* .min changes both heights, so re-measure */
 });
 
 /* assumption chips — tap to unfold the fine print */
