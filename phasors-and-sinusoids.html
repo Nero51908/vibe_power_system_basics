@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Twenty Milliseconds, Frozen — Phasors and Their Sinusoids</title>
+<title>Twenty Milliseconds, Frozen: Phasors and Their Sinusoids</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
@@ -150,9 +150,9 @@ footer code{color:var(--dim)}
 <body>
 
 <header>
-  <div class="eyebrow">Power systems · mental model · 50 Hz</div>
+  <div class="eyebrow">Power systems / mental model / 50 Hz</div>
   <h1>Twenty milliseconds, frozen</h1>
-  <p class="dek">Every AC voltage and current on the grid is a <b>spinning arrow</b> photographed mid-turn. The film runs at <b>50 turns a second</b>, and the whole story — phasors, RMS, phase shift, why three-phase is smooth — fits in one <b>20&nbsp;ms</b> loop. Below, the film is slowed enough to watch. Magnitudes are pinned to the flagship worked example (<b>158.8&nbsp;kV</b> line-to-neutral, <b>629.8&nbsp;A</b>); this page varies time, frequency and angle — and all of it is draggable.</p>
+  <p class="dek">Every AC voltage and current on the grid is a <b>spinning arrow</b> photographed mid-turn. The film runs at <b>50 turns a second</b>, and the whole story (phasors, RMS, phase shift, why three-phase is smooth) fits in one <b>20&nbsp;ms</b> loop. Below, the film is slowed enough to watch. Magnitudes are pinned to the flagship worked example (<b>158.8&nbsp;kV</b> line-to-neutral, <b>629.8&nbsp;A</b>); this page varies time, frequency and angle, and all of it is draggable.</p>
 
   <div class="strip">
     <div class="gauge"><div class="k">Angular speed ω = 2πf</div><div class="v"><span id="gW">–</span><span class="u">rad/s</span></div></div>
@@ -167,14 +167,14 @@ footer code{color:var(--dim)}
   <div class="deck-wrap" id="deckWrap">
   <div class="deck" aria-label="Controls">
     <div class="deck-head">
-      <h2>Control deck — the film</h2>
+      <h2>Control deck: the film</h2>
       <span class="spacer"></span>
-      <span class="deck-mini">t = <b id="dT2">–</b> ms · ωt = <b id="dWt">–</b>°</span>
+      <span class="deck-mini">t = <b id="dT2">–</b> ms, ωt = <b id="dWt">–</b>°</span>
       <button class="btn tiny" id="playBtn" aria-pressed="true">⏸ Pause</button>
       <button class="btn tiny" id="resetBtn">Reset question</button>
       <button class="btn tiny" id="deckToggle" aria-expanded="true">Hide ▴</button>
     </div>
-    <p>Four numbers define the film: how fast the arrows spin (f), how far the current trails its voltage (φ), how slowed the playback is, and where in the turn you are standing (t). The deck stays pinned while you scroll — every panel below reads the same frozen instant.</p>
+    <p>Four numbers define the film: how fast the arrows spin (f), how far the current trails its voltage (φ), how slowed the playback is, and where in the turn you are standing (t). The deck stays pinned while you scroll; every panel below reads the same frozen instant.</p>
     <div class="sliders">
       <div class="ctl"><label>Frequency f <span class="badge" id="bF">50 Hz</span></label>
         <input type="range" id="cF" min="25" max="100" step="1" value="50" aria-label="Frequency in hertz"></div>
@@ -184,35 +184,38 @@ footer code{color:var(--dim)}
         <input type="range" id="cSlow" min="50" max="500" step="10" value="150" aria-label="Slow motion playback factor"></div>
       <div class="ctl"><label>Time scrub t <span class="badge" id="bT">0.00 ms</span></label>
         <input type="range" id="cT" min="0" max="20" step="0.05" value="0" aria-label="Time within one period in milliseconds"></div>
-      <div class="note">One turn of the arrows = one period T = 1/f. At the current settings a <b id="nT">20.0 ms</b> turn takes <b id="nTurn">3.00 s</b> of real time to watch. Scrubbing pauses playback; change f and the time axis, the scrub range and every readout follow — nothing on this page is hardwired to 20 ms.</div>
+      <div class="note">One turn of the arrows = one period T = 1/f. At the current settings a <b id="nT">20.0 ms</b> turn takes <b id="nTurn">3.00 s</b> of real time to watch. Scrubbing pauses playback; change f and the time axis, the scrub range and every readout follow; nothing on this page is hardwired to 20 ms.</div>
     </div>
   </div>
   </div>
 
   <section id="assume">
-    <div class="step">Step 0 · The assumption ledger</div>
-    <h2>Five things the film assumes</h2>
-    <p>Every panel below rests on these. State them before reading anything off a phasor diagram — the point of a mental model is knowing when it applies. Tap a chip to unfold its fine print.</p>
+    <div class="step">Step 0: The assumption ledger</div>
+    <h2>Six things the film assumes</h2>
+    <p>Every panel below rests on these. State them before reading anything off a phasor diagram: the point of a mental model is knowing when it applies. Tap a chip to unfold its fine print.</p>
     <div class="chips">
-      <span class="chip" data-d="Arrow length is the RMS value — the DC-equivalent heating value, the number on every nameplate. The wave itself crests √2 higher: 158.8 kV of arrow, 224.5 kV of crest.">RMS phasors — arrow = V_rms</span>
-      <span class="chip" data-d="v_a(t) = √2·V·cos(ωt): at t = 0 phase a sits exactly at its positive crest. A sine reference shifts every angle on the page by 90° — either is fine, but say which one out loud.">cosine reference</span>
-      <span class="chip" data-d="The arrows pass the reference in the order a, b, c while rotating counterclockwise — positive sequence. Swap any two phases and every motor on the system runs backwards.">positive sequence abc — counterclockwise</span>
-      <span class="chip" data-d="Equal magnitudes, exactly 120° apart. This is what makes v_a + v_b + v_c = 0 at every instant (Step 2) and the summed three-phase power dead flat (Step 4).">balanced — equal, 120° apart</span>
-      <span class="chip" data-d="Phasor arithmetic freezes e^(jωt) at one shared ω. Arrows spinning at different speeds have no fixed relative angle, so only same-ω phasors may be added — see the frequency mixer card in Step 5.">one frequency — only same-ω phasors add</span>
+      <span class="chip" data-d="Arrow length is the RMS value, the DC-equivalent heating value, the number on every nameplate. The wave itself crests √2 higher: 158.8 kV of arrow, 224.5 kV of crest.">RMS phasors: arrow = V_rms</span>
+      <span class="chip" data-d="Textbooks and lecture slides put the reference phasor on the horizontal axis, pointing right. Every phasor pane on this page is that picture turned a quarter turn counterclockwise: the reference (0°) direction points up, so a phasor's height is its instantaneous value and its wave can be drawn alongside with no extra rotation. Angles between phasors are unchanged; only the paper is turned. The small axes in each pane's corner are the reminder.">drawn with 0° pointing up: 90° ccw from the textbook</span>
+      <span class="chip" data-d="v_a(t) = √2·V·cos(ωt): at t = 0 phase a sits exactly at its positive crest. A sine reference shifts every angle on the page by 90°; either is fine, but say which one out loud.">cosine reference</span>
+      <span class="chip" data-d="The arrows pass the reference in the order a, b, c while rotating counterclockwise: positive sequence. Swap any two phases and every motor on the system runs backwards.">positive sequence abc: counterclockwise</span>
+      <span class="chip" data-d="Equal magnitudes, exactly 120° apart. This is what makes v_a + v_b + v_c = 0 at every instant (Step 2) and the summed three-phase power dead flat (Step 4).">balanced: equal, 120° apart</span>
+      <span class="chip" data-d="Phasor arithmetic freezes e^(jωt) at one shared ω. Arrows spinning at different speeds have no fixed relative angle, so only same-ω phasors may be added; see the frequency mixer card in Step 5.">one frequency: only same-ω phasors add</span>
     </div>
     <div class="ledger" id="ledger" hidden></div>
   </section>
 
   <section id="project">
-    <div class="step">Step 1 · One arrow, one wave</div>
+    <div class="step">Step 1: One arrow, one wave</div>
     <h2>The projection machine</h2>
-    <p>One arrow of length V_rms turns counterclockwise at ω. The instantaneous voltage is the projection of its <b>√2-stretched tip</b> — the point riding the dashed outer ring — onto the reference axis, drawn <b>pointing up</b> here so that height can be carried straight across; the arrow itself stays RMS length. The wave on the right is nothing but this rotation seen frame by frame; the ring, √2 larger than the arrow, is where the crest lives.</p>
+    <p>One arrow of length V_rms turns counterclockwise at ω. The instantaneous voltage is the projection of its <b>√2-stretched tip</b> (the point riding the dashed outer ring) onto the reference axis, drawn <b>pointing up</b> here so that height can be carried straight across; the arrow itself stays RMS length. The wave on the right is nothing but this rotation seen frame by frame; the ring, √2 larger than the arrow, is where the crest lives.</p>
     <div class="panel">
       <div class="duo">
         <div>
           <svg id="svg1L" viewBox="0 0 440 340" role="img" aria-label="Rotating phasor of phase a voltage with RMS circle and root-2 peak ring">
             <defs>
               <marker id="mk1A" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--phA)"/></marker>
+              <marker id="mkD" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+              <marker id="mkF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/></marker>
             </defs>
             <g id="g1s"></g>
             <g id="g1d"></g>
@@ -225,14 +228,14 @@ footer code{color:var(--dim)}
           </svg>
         </div>
       </div>
-      <div class="svgcap">Freeze any frame — that photograph <b style="color:var(--dim)">is</b> the phasor diagram; spinning the photo is just changing the reference, and nothing physical changes. The dashed projection line carries the ring point (the true crest value) across to the wave cursor; the arrow itself stays RMS length.</div>
+      <div class="svgcap">Freeze any frame: that photograph <b style="color:var(--dim)">is</b> the phasor diagram; spinning the photo is just changing the reference, and nothing physical changes. The dashed projection line carries the ring point (the true crest value) across to the wave cursor; the arrow itself stays RMS length.</div>
     </div>
   </section>
 
   <section id="trio">
-    <div class="step">Step 2 · The balanced trio</div>
+    <div class="step">Step 2: The balanced trio</div>
     <h2>Three arrows, one machine</h2>
-    <p>Same machine, three arrows welded 120° apart and turning as one rigid set. Three projections, three waves — and because the arrows are balanced, the three instantaneous values sum to <b>exactly zero at every frame</b> of the film. Watch the ledger below compute it live.</p>
+    <p>Same machine, three arrows welded 120° apart and turning as one rigid set. Three projections, three waves, and because the arrows are balanced, the three instantaneous values sum to <b>exactly zero at every frame</b> of the film. Watch the ledger below compute it live.</p>
     <div class="panel">
       <div class="duo">
         <div>
@@ -254,14 +257,14 @@ footer code{color:var(--dim)}
         </div>
       </div>
       <div class="sumrow" id="sumRow">–</div>
-      <div class="svgcap">That standing zero is the flagship page's dashed neutral rail: what cancels here is the voltage sum, but feed a balanced load and the three currents inherit the same 120° geometry and cancel identically — so the return conductor would carry nothing at every frame, and we don't build it.</div>
+      <div class="svgcap">That standing zero is the flagship page's dashed neutral rail: what cancels here is the voltage sum, but feed a balanced load and the three currents inherit the same 120° geometry and cancel identically, so the return conductor would carry nothing at every frame, and we don't build it.</div>
     </div>
   </section>
 
   <section id="lagtime">
-    <div class="step">Step 3 · Lag, in degrees and in milliseconds</div>
+    <div class="step">Step 3: Lag, in degrees and in milliseconds</div>
     <h2>The angle that is also a time</h2>
-    <p>A phase shift is not just an angle on a protractor — it is a time on the clock: a current lagging by φ crosses zero <b>Δt = φ/360°·T later</b> than its voltage. Below, v_a(t) and i_a(t) are drawn with <b>separate vertical scales</b> — kilovolts and amperes share no axis, so compare shapes and timing, never heights.</p>
+    <p>A phase shift is not just an angle on a protractor; it is a time on the clock: a current lagging by φ crosses zero <b>Δt = φ/360°·T later</b> than its voltage. Below, v_a(t) and i_a(t) are drawn with <b>separate vertical scales</b>; kilovolts and amperes share no axis, so compare shapes and timing, never heights.</p>
     <div class="panel">
       <div class="duo">
         <div>
@@ -283,40 +286,40 @@ footer code{color:var(--dim)}
       </div>
       <div class="stats">
         <div class="stat"><div class="k">current lags voltage by</div><div class="v" id="s3phi">–</div></div>
-        <div class="stat hot"><div class="k">the same lag as time · Δt = φ/360°·T</div><div class="v" id="s3dt">–</div></div>
+        <div class="stat hot"><div class="k">the same lag as a time (Δt = φ/360°·T)</div><div class="v" id="s3dt">–</div></div>
         <div class="stat"><div class="k">sign check</div><div class="v">lagging = later <small>i crosses zero AFTER v</small></div></div>
       </div>
-      <div class="svgcap">Markers sit on the two positive-going zero crossings. The flagship's scope trap applies here too: probe V_ab instead of V_a and the screen shows 30° + φ = <span id="tTrap">60</span>° of separation — always measure element voltage against element current.</div>
+      <div class="svgcap">Markers sit on the two positive-going zero crossings. The flagship's scope trap applies here too: probe V_ab instead of V_a and the screen shows 30° + φ = <span id="tTrap">60</span>° of separation; always measure element voltage against element current.</div>
     </div>
   </section>
 
   <section id="coda">
-    <div class="step">Step 4 · Coda</div>
+    <div class="step">Step 4: Coda</div>
     <h2>Why three-phase exists</h2>
-    <p>Multiply the two waves of Step 3 and the per-phase power p_a(t) = v_a(t)·i_a(t) <b>pulses at 2ω</b>: average VI·cos φ, ripple ±VI. With any lag at all it even dips negative twice a turn — energy sloshing <b>backward</b> toward the source. Add the three phases and every pulsation cancels: the sum is dead flat.</p>
+    <p>Multiply the two waves of Step 3 and the per-phase power p_a(t) = v_a(t)·i_a(t) <b>pulses at 2ω</b>: average VI·cos φ, ripple ±VI. With any lag at all it even dips negative twice a turn, energy sloshing <b>backward</b> toward the source. Add the three phases and every pulsation cancels: the sum is dead flat.</p>
     <div class="panel">
       <svg id="svg4" viewBox="0 0 1100 380" role="img" aria-label="Per-phase instantaneous power pulsating at twice the supply frequency, with the flat three-phase sum">
         <g id="g4s"></g>
         <g id="g4d"></g>
       </svg>
       <div class="stats">
-        <div class="stat hot"><div class="k">per-phase average · VI·cos φ</div><div class="v" id="s4avg">–</div></div>
-        <div class="stat"><div class="k">per-phase ripple · ±VI</div><div class="v" id="s4rip">–</div></div>
+        <div class="stat hot"><div class="k">per-phase average (VI·cos φ)</div><div class="v" id="s4avg">–</div></div>
+        <div class="stat"><div class="k">per-phase ripple (±VI)</div><div class="v" id="s4rip">–</div></div>
         <div class="stat"><div class="k">per-phase range</div><div class="v" id="s4range">–</div></div>
-        <div class="stat hot"><div class="k">three-phase sum · 3·VI·cos φ</div><div class="v" id="s4sum">–</div></div>
+        <div class="stat hot"><div class="k">three-phase sum (3·VI·cos φ)</div><div class="v" id="s4sum">–</div></div>
       </div>
-      <div class="svgcap">Each phase shakes; the shaft does not. Single-phase traction was rough enough to need special railway supplies — everything industrial is three-phase for this one picture. At φ = 0 the per-phase range is 0…200.0 MW and the sum 300.0 MW.</div>
+      <div class="svgcap">Each phase shakes; the shaft does not. Single-phase traction was rough enough to need special railway supplies; everything industrial is three-phase for this one picture. At φ = 0 the per-phase range is 0…200.0 MW and the sum 300.0 MW.</div>
     </div>
   </section>
 
   <section id="mistakes">
-    <div class="step">Step 5 · Diagnostics</div>
+    <div class="step">Step 5: Diagnostics</div>
     <h2>Three ways to misread the film</h2>
-    <p>Each misreading leaves a fingerprint. The cards recompute from the sliders — if your number disagrees with a phasor calculation by one of these exact factors, you have found the mistake.</p>
+    <p>Each misreading leaves a fingerprint. The cards recompute from the sliders; if your number disagrees with a phasor calculation by one of these exact factors, you have found the mistake.</p>
     <div class="mgrid">
       <div class="mcard">
         <h3>The √2 impostor</h3>
-        <code>arrow |I| = <span id="m5i">–</span> A rms · crest = √2·|I| = <span id="m5pkc">–</span> A</code>
+        <code>arrow |I| = <span id="m5i">–</span> A rms, crest = √2·|I| = <span id="m5pkc">–</span> A</code>
         <span class="got" id="m5pk">–</span><span class="tag high">×√2 fingerprint</span>
         <p>Reading the phasor length as the peak. The arrow is RMS; the wave it generates crests √2 higher. If a scope peak and a phasor magnitude disagree by exactly 1.414, this is why.</p>
       </div>
@@ -330,15 +333,15 @@ footer code{color:var(--dim)}
         <h3>The frequency mixer</h3>
         <code>50 Hz phasor + 60 Hz phasor = ?</code>
         <span class="got">undefined</span><span class="tag high">one ω only</span>
-        <p>Phasors freeze e^(jωt) at one shared ω; arrows spinning at different speeds have no fixed relative angle, so their sum is not a phasor. Every diagram on this page silently assumes one frequency — fine print that matters again on the harmonics page.</p>
+        <p>Phasors freeze e^(jωt) at one shared ω; arrows spinning at different speeds have no fixed relative angle, so their sum is not a phasor. Every diagram on this page silently assumes one frequency, fine print that matters again on the harmonics page.</p>
       </div>
     </div>
   </section>
 
   <footer>
     <p><b style="color:var(--dim)">The whole film on one line.</b><br>
-    <code>v = √2·V·cos ωt · i = √2·I·cos(ωt−φ) · p = v·i = V·I·[cos φ + cos(2ωt−φ)] · Σ_3φ = 3·V·I·cos φ = constant</code></p>
-    <p>Scope honestly stated: balanced, single-frequency, RMS convention throughout; magnitudes borrowed from the flagship worked example (300 MW delivered at 275 kV, unity-pf line current 629.8 A — here the lag φ is a free slider, so the powers in Step 4 are illustrative of that same machine). Built as a teaching aid; everything recomputes in the browser, nothing is stored.</p>
+    <code>v = √2·V·cos ωt ; i = √2·I·cos(ωt−φ) ; p = v·i = V·I·[cos φ + cos(2ωt−φ)] ; Σ_3φ = 3·V·I·cos φ = constant</code></p>
+    <p>Scope honestly stated: balanced, single-frequency, RMS convention throughout; magnitudes borrowed from the flagship worked example (300 MW delivered at 275 kV, unity-pf line current 629.8 A; here the lag φ is a free slider, so the powers in Step 4 are illustrative of that same machine). Built as a teaching aid; everything recomputes in the browser, nothing is stored.</p>
   </footer>
 
 </main>
@@ -419,7 +422,7 @@ function wpoly(fn,amp,color,w,op,dash){
   return '<polyline points="'+wpts(fn,amp,0,1,150)+'" fill="none" stroke="'+color+'" stroke-width="'+w+'" opacity="'+op+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';
 }
 function waveAxis(T){                      /* zero line + bottom time axis, labels recomputed from T */
-  var s=ln(WX0,WCY,WX1,WCY,'stroke="var(--gridline)" stroke-width="1.2"');
+  var s=ln(WX0,WCY,WX1,WCY,'stroke="var(--faint)" stroke-width="1" opacity=".55"')+tx(WX0-10,WCY+4,11,'var(--faint)','end','0');
   s+=ln(WX0,312,WX1,312,'stroke="var(--line)" stroke-width="1.5"');
   for(var i=0;i<=4;i++){
     var x=xw(i/4);
@@ -433,12 +436,27 @@ function waveAxis(T){                      /* zero line + bottom time axis, labe
 }
 
 /* ---------- static layers (rebuilt when f or phi changes) ---------- */
+/* reminder that this pane is the textbook picture turned a quarter turn counterclockwise: the
+   reference (0°) axis points up so that tip heights are the waveform. A faint dashed reference
+   axis through the centre, and a corner glyph: "0° here" up, "0° textbook" right, 90° between. */
+function refAxis(oy){
+  var ox=26, s='';
+  s+=ln(PC.cx,PC.cy-PC.ring-6,PC.cx,PC.cy+PC.ring+6,'stroke="var(--faint)" stroke-width="1" stroke-dasharray="2 4" opacity=".4"');
+  s+=ln(ox,oy,ox+34,oy,'stroke="var(--faint)" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#mkF)"');
+  s+=ln(ox,oy,ox,oy-34,'stroke="var(--dim)" stroke-width="1.6" marker-end="url(#mkD)"');
+  s+='<path d="M'+(ox+20)+','+oy+' A20,20 0 0 0 '+ox+','+(oy-20)+'" fill="none" stroke="var(--faint)" stroke-width="1" marker-end="url(#mkF)"/>';
+  s+=tx(ox+23,oy-21,10.5,'var(--faint)','start','90°');
+  s+=tx(ox+5,oy-37,10.5,'var(--dim)','start','0° here');
+  s+=tx(ox+39,oy+4,10.5,'var(--faint)','start','0° textbook');
+  return s;
+}
+function zeroLine(){ return ln(16,PC.cy,424,PC.cy,'stroke="var(--faint)" stroke-width="1" opacity=".45"')+tx(6,PC.cy+4,11,'var(--faint)','start','0'); }
 function stat1L(d){
-  var s='';
+  var s=zeroLine()+refAxis(296);
   s+=cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"');
   s+=cir(PC.cx,PC.cy,PC.ring,'fill="none" stroke="var(--faint)" stroke-width="1.2" stroke-dasharray="5 6"');
   s+=cir(PC.cx,PC.cy,3,'fill="var(--dim)"');
-  s+=tx(PC.cx,24,11.5,'var(--faint)','middle','dashed ring = √2·V_rms = '+nf(d.Vpk/1e3,1)+' kV — the crest');
+  s+=tx(PC.cx,24,11.5,'var(--faint)','middle','dashed ring = √2·V_rms = '+nf(d.Vpk/1e3,1)+' kV, the crest');
   s+=tx(PC.cx,330,11.5,'var(--faint)','middle','solid circle = arrow length = V_rms = '+nf(V/1e3,1)+' kV');
   return s;
 }
@@ -453,7 +471,7 @@ function stat1R(d){
   return s;
 }
 function stat2L(){
-  return cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"')
+  return zeroLine()+refAxis(296)+cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"')
        + cir(PC.cx,PC.cy,3,'fill="var(--dim)"');
 }
 function stat2R(d){
@@ -464,7 +482,7 @@ function stat2R(d){
   return s;
 }
 function stat3L(){
-  return cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"')
+  return zeroLine()+refAxis(296)+cir(PC.cx,PC.cy,RV,'fill="none" stroke="var(--line)" stroke-width="1.4"')
        + cir(PC.cx,PC.cy,3,'fill="var(--dim)"');
 }
 function stat3R(d){
@@ -494,7 +512,7 @@ function stat4(d){
   var pcF=function(u){ return VI*(Math.cos(d.phiR)+Math.cos(4*PI*u+4*PI/3-d.phiR)); };
   for(k=-100;k<=300;k+=100){
     var y=yP(k);
-    s+=ln(P4.x0,y,P4.x1,y,'stroke="var(--gridline)" stroke-width="'+(k===0?1.6:1)+'"');
+    s+=ln(P4.x0,y,P4.x1,y,k===0?'stroke="var(--faint)" stroke-width="1" opacity=".55"':'stroke="var(--gridline)" stroke-width="1"');
     s+=tx(P4.x0-8,y+4,11,'var(--faint)','end',(k<0?'−':'')+Math.abs(k));
   }
   s+=ln(P4.x0,35,P4.x0,335,'stroke="var(--line)" stroke-width="1.5"');
@@ -504,7 +522,7 @@ function stat4(d){
     s+=ln(x,335,x,341,'stroke="var(--line)" stroke-width="1.2"');
     s+=tx(x,356,11,'var(--faint)','middle',nf(d.T*i/4,1));
   }
-  s+=tx(P4.x0,374,11.5,'var(--dim)','start','time within one turn (ms) — p(t) in MW pulses at 2f: two humps per turn');
+  s+=tx(P4.x0,374,11.5,'var(--dim)','start','time within one turn (ms); p(t) in MW pulses at 2f, two humps per turn');
   /* negative lobes, shaded */
   var shade='M '+px4(0).toFixed(1)+','+yP(0).toFixed(1);
   for(k=0;k<=n;k++){ u=k/n; shade+=' L '+px4(u).toFixed(1)+','+yP(Math.min(paF(u),0)/1e6).toFixed(1); }
@@ -526,12 +544,12 @@ function stat4(d){
   /* dead-flat three-phase sum */
   var ys=yP(d.psum/1e6);
   s+=ln(P4.x0,ys,P4.x1,ys,'stroke="var(--amber)" stroke-width="2.6"');
-  s+=tx(P4.x1-4,(ys>62?ys-10:ys+18),12,'var(--amber)','end','p_a+p_b+p_c = 3·VI·cos φ = '+nf(d.psum/1e6,2)+' MW — dead flat');
+  s+=tx(P4.x1-4,(ys>62?ys-10:ys+18),12,'var(--amber)','end','p_a+p_b+p_c = 3·VI·cos φ = '+nf(d.psum/1e6,2)+' MW, dead flat');
   /* negative-lobe readout */
   var pminMW=d.pmin/1e6;
   if(pminMW<-0.5){
     var u1=(180+S.phi)/720, yl=Math.min(yP(pminMW)+18,331);
-    s+=tx(px4(u1),yl,11,'var(--bad)','middle','dips to '+nm(pminMW,2)+' MW — energy flows backward twice a cycle');
+    s+=tx(px4(u1),yl,11,'var(--bad)','middle','dips to '+nm(pminMW,2)+' MW: energy flows backward twice a cycle');
   }
   return s;
 }
@@ -583,8 +601,8 @@ function dyn2(d){
      sideways as signs flip; note is unconditional so the line never changes length */
   var pad=function(t,w){ var p=''; for(var i=t.length;i<w;i++) p+='&nbsp;'; return p+t; };
   $('sumRow').innerHTML='v_a + v_b + v_c &nbsp;=&nbsp; '+pad(f1(a),8)+' + '+pad(f1(b),8)+' + '+pad(f1(c),8)
-    +' &nbsp;=&nbsp; <b>'+pad(nm(z,1),4)+' kV</b> — at this frame, and every other'
-    +' (display rounding — the exact sum is 0)';
+    +' &nbsp;=&nbsp; <b>'+pad(nm(z,1),4)+' kV</b>, at this frame and every other'
+    +' (display rounding; the exact sum is 0)';
 }
 function dyn3(d){
   var fr=Math.min(S.t/d.T,1), ang=2*PI*fr, angI=ang-d.phiR;
@@ -699,10 +717,11 @@ $('resetBtn').addEventListener('click',function(){
    scrolling. So the deck keeps a constant flow footprint — the height it gives up when it
    condenses is parked in its bottom margin, and it condenses only once it has been pinned
    for exactly that distance, so the content below never moves. */
-var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckStuck=false, deckRaf=0;
+var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckRaf=0;
 function measureDeck(){
-  var root=document.documentElement, was=deckWrap.classList.contains('stuck'), cs, H, h;
-  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page */
+  var root=document.documentElement, body=document.body, was=deckWrap.classList.contains('stuck'), cs, H, h;
+  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page … */
+  body.style.minHeight=root.scrollHeight+'px';      /* … nor shorten it: a shorter page clamps scrollY when the reader is at the bottom */
   deckWrap.style.marginBottom='';
   deckWrap.classList.remove('stuck'); H=deckWrap.getBoundingClientRect().height;   /* sub-pixel, so the margin swap is exact */ cs=getComputedStyle(deckWrap);
   deckMb=parseFloat(cs.marginBottom)||0;
@@ -711,12 +730,12 @@ function measureDeck(){
   deckWrap.classList.toggle('stuck',was);
   deckDelta=Math.max(0,H-h);
   if(was) deckWrap.style.marginBottom=(deckMb+deckDelta)+'px';
+  body.style.minHeight='';
   root.style.overflowAnchor='';
 }
 function placeDeck(){
   var st=window.scrollY>=deckTop+deckDelta;
-  if(st===deckStuck) return;
-  deckStuck=st;
+  if(st===deckWrap.classList.contains('stuck')) return;   /* the class is the one source of truth */
   deckWrap.classList.toggle('stuck',st);
   deckWrap.style.marginBottom=st?(deckMb+deckDelta)+'px':'';
 }

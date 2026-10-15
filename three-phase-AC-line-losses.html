@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>The Price of 120 Kilometres — Three-Phase Line Losses</title>
+<title>The Price of 120 Kilometres: Three-Phase Line Losses</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
@@ -167,9 +167,9 @@ footer code{color:var(--dim)}
 <body>
 
 <header>
-  <div class="eyebrow">Power systems · worked example · 50 Hz</div>
+  <div class="eyebrow">Power systems / worked example / 50 Hz</div>
   <h1>The price of 120 kilometres</h1>
-  <p class="dek">A three-phase line on the 275&nbsp;kV backbone delivers <b>300&nbsp;MW</b> at a line-to-line voltage of <b>275&nbsp;kV</b> to a load at <b>unity power factor</b>. The line runs <b>120&nbsp;km</b> and each phase conductor has <b>0.05&nbsp;Ω/km</b>. How much power never arrives? Everything below is live — drag the sliders and watch the algebra, the phasors and the chart move together.</p>
+  <p class="dek">A three-phase line on the 275&nbsp;kV backbone delivers <b>300&nbsp;MW</b> at a line-to-line voltage of <b>275&nbsp;kV</b> to a load at <b>unity power factor</b>. The line runs <b>120&nbsp;km</b> and each phase conductor has <b>0.05&nbsp;Ω/km</b>. How much power never arrives? Everything below is live: drag the sliders and watch the algebra, the phasors and the chart move together.</p>
 
   <div class="strip">
     <div class="gauge"><div class="k">Line current I_L</div><div class="v"><span id="hI">–</span><span class="u">A</span></div></div>
@@ -186,7 +186,7 @@ footer code{color:var(--dim)}
     <div class="deck-head">
       <h2>Control deck</h2>
       <span class="spacer"></span>
-      <span class="deck-mini">P_loss = <b id="dLoss">–</b> MW · <b id="dPct">–</b>%</span>
+      <span class="deck-mini">P_loss = <b id="dLoss">–</b> MW (<b id="dPct">–</b>%)</span>
       <button class="btn tiny" id="resetBtn">Reset question</button>
       <button class="btn tiny" id="deckToggle" aria-expanded="true">Hide ▴</button>
     </div>
@@ -204,37 +204,37 @@ footer code{color:var(--dim)}
         <input type="range" id="cR" min="0.02" max="0.12" step="0.005" value="0.05" aria-label="Resistance per kilometre"></div>
       <div class="ctl"><label>Reactance x_L <span class="badge" id="bXl">0.32 Ω/km</span></label>
         <input type="range" id="cXl" min="0" max="0.45" step="0.01" value="0.32" aria-label="Series reactance per kilometre"></div>
-      <div class="note">P and V_LL are receiving-end quantities (that's the R in Step 3's V_R). r is the 50&nbsp;Hz value at operating temperature (skin effect and heat both raise it). x_L drives the walk-the-line panel only — losses use R alone, because reactance dissipates nothing.</div>
+      <div class="note">P and V_LL are receiving-end quantities (that's the R in Step 3's V_R). r is the 50&nbsp;Hz value at operating temperature (skin effect and heat both raise it). x_L drives the walk-the-line panel only; losses use R alone, because reactance dissipates nothing.</div>
     </div>
   </div>
   </div>
 
   <section id="assume">
-    <div class="step">Step 0 · The assumption ledger</div>
+    <div class="step">Step 0: The assumption ledger</div>
     <h2>Say the fine print out loud</h2>
-    <p>Every formula that follows rests on these. State them before computing — the point of a mental model is knowing when it applies. Tap a chip to unfold its fine print.</p>
+    <p>Every formula that follows rests on these. State them before computing: the point of a mental model is knowing when it applies. Tap a chip to unfold its fine print.</p>
     <div class="chips">
-      <span class="chip" data-d="Equal magnitudes, exactly 120° apart, identical impedances. This is what licenses per-phase analysis and makes the neutral current zero.">balanced · three-wire</span>
-      <span class="chip" data-d="Phasors are RMS values of 50 Hz sinusoids. No harmonics — with distortion, cos φ is only the displacement power factor.">sinusoidal · RMS · 50 Hz</span>
-      <span class="chip" data-d="'Delivers 300 MW at 275 kV to a load' pins both numbers to the receiving end — the R in Step 3's V_R. The same current flows the whole length once shunt paths are ignored.">P, V at receiving end</span>
-      <span class="chip" data-d="φ is the angle between element voltage and element current — not between V_LL and I_L, which differ by an extra 30°.">φ = angle(V_ph, I_ph)</span>
+      <span class="chip" data-d="Equal magnitudes, exactly 120° apart, identical impedances. This is what licenses per-phase analysis and makes the neutral current zero.">balanced, three-wire</span>
+      <span class="chip" data-d="Phasors are RMS values of 50 Hz sinusoids. No harmonics; with distortion, cos φ is only the displacement power factor.">sinusoidal, RMS, 50 Hz</span>
+      <span class="chip" data-d="'Delivers 300 MW at 275 kV to a load' pins both numbers to the receiving end, the R in Step 3's V_R. The same current flows the whole length once shunt paths are ignored.">P, V at receiving end</span>
+      <span class="chip" data-d="φ is the angle between element voltage and element current, not between V_LL and I_L, which differ by an extra 30°.">φ = angle(V_ph, I_ph)</span>
       <span class="chip" data-d="Series reactance X shifts phase and exchanges vars but dissipates nothing; it changes the sending-end voltage, not the losses. Shunt charging is excluded by the problem.">only R dissipates</span>
       <span class="chip" data-d="No neutral conductor exists on the line, and balance means no return current anyway. The earthwire on the towers is lightning shielding and stays essentially idle.">no neutral-conductor loss</span>
-      <span class="chip" data-d="I²R in the phase conductors only. Real lines add corona and insulator leakage — small in fair weather at this voltage.">conductor I²R only</span>
+      <span class="chip" data-d="I²R in the phase conductors only. Real lines add corona and insulator leakage, small in fair weather at this voltage.">conductor I²R only</span>
     </div>
     <div class="ledger" id="ledger" hidden></div>
   </section>
 
   <section id="perphase">
-    <div class="step">Step 1 · One phase tells the whole story</div>
-    <h2>The per-phase circuit — with the wire we don't build</h2>
-    <p>Balance lets you collapse three phases into one single-phase circuit between a line and the <b>neutral reference</b>. The problem pins both givens at the <b>receiving end</b>: V_LN = V_LL/√3 across the load, one third of the power through it. The sending-end source on the right is whatever the line demands — Step 3 walks there. The return rail is the neutral — which carries no current, which is exactly why the real line has three wires, not four.</p>
+    <div class="step">Step 1: One phase tells the whole story</div>
+    <h2>The per-phase circuit, with the wire we don't build</h2>
+    <p>Balance lets you collapse three phases into one single-phase circuit between a line and the <b>neutral reference</b>. The problem pins both givens at the <b>receiving end</b>: V_LN = V_LL/√3 across the load, one third of the power through it. The sending-end source on the right is whatever the line demands; Step 3 walks there. The return rail is the neutral, which carries no current, which is exactly why the real line has three wires, not four.</p>
     <div class="panel">
       <svg viewBox="0 0 660 210" role="img" aria-label="Per-phase equivalent circuit, receiving end on the left: load with the given voltage, series conductor resistance, sending-end source on the right, dashed neutral return">
-        <!-- load (receiving end — where the givens are pinned) -->
+        <!-- load (receiving end, where the givens are pinned) -->
         <rect x="80" y="55" width="150" height="86" rx="8" fill="var(--panel2)" stroke="var(--line)"/>
         <text x="155" y="86" font-size="12" fill="var(--text)" text-anchor="middle">load  ⅓ × P</text>
-        <text x="155" y="106" font-size="12.5" fill="var(--amber)" text-anchor="middle"><tspan id="pcPph">100.0</tspan> MW · pf <tspan id="pcPf">1.00</tspan></text>
+        <text x="155" y="106" font-size="12.5" fill="var(--amber)" text-anchor="middle"><tspan id="pcPph">100.0</tspan> MW, pf <tspan id="pcPf">1.00</tspan></text>
         <line x1="155" y1="141" x2="155" y2="152" stroke="var(--dim)" stroke-width="2"/>
         <text x="155" y="176" font-size="12" fill="var(--text)" text-anchor="middle">V_LN = <tspan id="pcVln" fill="var(--amber)">158.8</tspan> kV ∠0°</text>
         <!-- top rail -->
@@ -247,7 +247,7 @@ footer code{color:var(--dim)}
         <!-- current arrow: source feeds the load, right to left -->
         <line x1="530" y1="55" x2="482" y2="55" stroke="var(--phC)" stroke-width="2"/>
         <polygon points="482,55 492,50 492,60" fill="var(--phC)"/>
-        <text x="505" y="46" font-size="12" fill="var(--phC)" text-anchor="middle">I = <tspan id="pcI">629.8</tspan> A</text>
+        <text x="536" y="59" font-size="12" fill="var(--phC)" text-anchor="start">I = <tspan id="pcI">629.8</tspan> A</text>
         <!-- sending-end source (deliberately unnumbered) -->
         <circle cx="590" cy="98" r="27" fill="none" stroke="var(--phA)" stroke-width="2"/>
         <path d="M576,98 q7,-13 14,0 q7,13 14,0" fill="none" stroke="var(--phA)" stroke-width="2"/>
@@ -256,18 +256,18 @@ footer code{color:var(--dim)}
         <text x="590" y="176" font-size="12" fill="var(--dim)" text-anchor="middle">sending end (V_S)</text>
         <!-- neutral rail -->
         <line x1="155" y1="152" x2="590" y2="152" stroke="var(--faint)" stroke-width="1.6" stroke-dasharray="7 6"/>
-        <text x="372" y="196" font-size="11.5" fill="var(--faint)" text-anchor="middle">neutral reference — carries 0 A when balanced: the wire the line doesn't build</text>
+        <text x="372" y="196" font-size="11.5" fill="var(--faint)" text-anchor="middle">neutral reference, carries 0 A when balanced: the wire the line doesn't build</text>
         <!-- loss badge -->
         <text x="365" y="22" font-size="12" fill="var(--good)" text-anchor="middle">this conductor burns I²R = <tspan id="pcLossOne">2.38</tspan> MW  →  ×3 phases = <tspan id="pcLossAll" font-weight="600">7.14</tspan> MW</text>
       </svg>
-      <div class="svgcap">Drawn receiving end first — the same left-to-right geography as Step 3's walk. Sanity check the current here: I = (P/3) / (V_LN · cos φ). If you pasted V_LL into this circuit instead, you'd get a current √3 too small — and losses exactly 3× too small. That factor of 3 is a diagnostic fingerprint. The sending end is deliberately unnumbered: R alone can't price it — Step 3, with x_L in hand, walks there.</div>
+      <div class="svgcap">Drawn receiving end first, the same left-to-right geography as Step 3's walk. Sanity check the current here: I = (P/3) / (V_LN·cos φ). If you pasted V_LL into this circuit instead, you'd get a current √3 too small, and losses exactly 3× too small. That factor of 3 is a diagnostic fingerprint. The sending end is deliberately unnumbered: R alone can't price it; Step 3, with x_L in hand, walks there.</div>
     </div>
   </section>
 
   <section id="phasors">
-    <div class="step">Step 2 · Where √3 and the 30° live</div>
+    <div class="step">Step 2: Where √3 and the 30° live</div>
     <h2>The phasor playground</h2>
-    <p>V_LL and V_LN are two simultaneous measurements on one system — the chord and the radius of the same triangle. Drag cos φ in the pinned deck and watch the currents swing away from their phase voltages by φ, while the angle to V_ab is always <b>30° + φ</b>: the trap that ruins oscilloscope readings.</p>
+    <p>V_LL and V_LN are two simultaneous measurements on one system: the chord and the radius of the same triangle. Drag cos φ in the pinned deck and watch the currents swing away from their phase voltages by φ, while the angle to V_ab is always <b>30° + φ</b>: the trap that ruins oscilloscope readings.</p>
     <div class="panel duo">
       <div>
         <svg id="phasorSvg" viewBox="0 0 450 420" role="img" aria-label="Rotating phasor diagram of phase voltages, line-to-line voltage and line currents">
@@ -302,23 +302,23 @@ footer code{color:var(--dim)}
           <text id="t30" font-size="11" fill="var(--amber)" text-anchor="middle">30°</text>
           <text id="tphi" font-size="11" fill="var(--phC)" text-anchor="middle">φ</text>
         </svg>
-        <div class="svgcap">Solid = voltages to scale (V_LN radius, V_ab chord). Dashed = currents, symbolic length. Dashed amber chord: tip of V_b to tip of V_a — the same vector as V_ab = V_a − V_b, length √3, leading V_a by 30° (abc sequence; acb would lag).</div>
+        <div class="svgcap">Solid = voltages to scale (V_LN radius, V_ab chord). Dashed = currents, symbolic length. Dashed amber chord: tip of V_b to tip of V_a, the same vector as V_ab = V_a − V_b, length √3, leading V_a by 30° (abc sequence; acb would lag).</div>
       </div>
       <div class="readouts">
-        <div class="stat"><div class="k">|V_ab| / |V_an|</div><div class="v">√3 = 1.732 <small>pure geometry — never rewiring</small></div></div>
+        <div class="stat"><div class="k">|V_ab| / |V_an|</div><div class="v">√3 = 1.732 <small>pure geometry, never rewiring</small></div></div>
         <div class="stat"><div class="k">φ = angle(V_a, I_a)</div><div class="v"><span id="phiOut">0.0</span>° <small>the angle in cos φ</small></div></div>
-        <div class="stat hot"><div class="k">angle(V_ab, I_a) — the scope trap</div><div class="v">30° + φ = <span id="angOut">30.0</span>°</div></div>
+        <div class="stat hot"><div class="k">angle(V_ab, I_a): the scope trap</div><div class="v">30° + φ = <span id="angOut">30.0</span>°</div></div>
         <div class="stat"><div class="k">neutral current (balanced)</div><div class="v">I_a + I_b + I_c = 0</div></div>
         <button class="btn" id="spinBtn" aria-pressed="false">▶ Spin at "50 Hz" (slowed ≈150×)</button>
-        <div class="svgcap">Phase colours follow the old Australian red–white–blue code. Everything rotates together at 50 rev/s; a phasor diagram is one frozen frame.</div>
+        <div class="svgcap">Phase colours follow the old Australian red-white-blue code. Everything rotates together at 50 rev/s; a phasor diagram is one frozen frame.</div>
       </div>
     </div>
   </section>
 
   <section id="walk">
-    <div class="step">Step 3 · Where you stand changes what you read</div>
-    <h2>Walk the line — power factor is a property of a cross-section</h2>
-    <p>On a series line the current phasor is the same everywhere, so as you walk from the load toward the source — left to right, straight along the Step 1 circuit — all the movement is in <b>V(x) = V_R + I·(r + j·x_L)·x</b>. (The subscript is R for <b>receiving end</b>, the load terminals — not the resistance R.) The resistive drop stretches V along I; the reactive drop is perpendicular and <b>rotates</b> it. The local angle φ(x) between V(x) and I — and with it the local power factor — drifts with position: your unity-pf load, read from 120 km away, is not unity any more.</p>
+    <div class="step">Step 3: Where you stand changes what you read</div>
+    <h2>Walk the line: power factor is a property of a cross-section</h2>
+    <p>On a series line the current phasor is the same everywhere, so as you walk from the load toward the source (left to right, straight along the Step 1 circuit), all the movement is in <b>V(x) = V_R + I·(r + j·x_L)·x</b>. (The subscript is R for <b>receiving end</b>, the load terminals, not the resistance R.) The resistive drop stretches V along I; the reactive drop is perpendicular and <b>rotates</b> it. The local angle φ(x) between V(x) and I (and with it the local power factor) drifts with position: your unity-pf load, read from 120 km away, is not unity any more.</p>
     <div class="panel">
       <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:8px">
         <div class="ctl" style="flex:1 1 260px;max-width:440px">
@@ -337,7 +337,7 @@ footer code{color:var(--dim)}
             </defs>
             <g id="walkG"></g>
           </svg>
-          <div class="svgcap">V_R — the receiving-end (load) voltage — held as reference. Green: the I·R drop, parallel to I. Blue: the j·I·X drop, perpendicular — the piece that rotates V and drags the local pf off unity. The magnifier stretches the drawn drops (and therefore the drawn angles); every number stays true.</div>
+          <div class="svgcap">V_R, the receiving-end (load) voltage, is held as reference. Green: the I·R drop, parallel to I. Blue: the j·I·X drop, perpendicular, the piece that rotates V and drags the local pf off unity. The magnifier stretches the drawn drops (and therefore the drawn angles); every number stays true.</div>
         </div>
         <div class="readouts">
           <div class="stat"><div class="k">Local line-to-line |V(x)|</div><div class="v" id="wVll">–</div></div>
@@ -349,13 +349,13 @@ footer code{color:var(--dim)}
         </div>
       </div>
       <svg id="lineSvg" viewBox="0 0 660 150" role="img" aria-label="Profiles of voltage magnitude and local power factor along the line"></svg>
-      <div class="svgcap">Series model only, exactly as the problem set it: charging current ignored. On a real line the shunt capacitance generates vars that push the drift the other way — below surge-impedance loading the sending current can even <em>lead</em>. Slide x_L to zero at unity pf and the rotation vanishes: with I along V_R, a pure-R line only stretches V. Off unity pf even the I·R drop twists V a touch — it lies along I, not along V_R.</div>
+      <div class="svgcap">Series model only, exactly as the problem set it: charging current ignored. On a real line the shunt capacitance generates vars that push the drift the other way; below surge-impedance loading the sending current can even <em>lead</em>. Slide x_L to zero at unity pf and the rotation vanishes: with I along V_R, a pure-R line only stretches V. Off unity pf even the I·R drop twists V a touch: it lies along I, not along V_R.</div>
     </div>
   </section>
 
   <section id="solve">
-    <div class="step">Step 4 · The computation, with the numbers substituting live</div>
-    <h2>Two lines of algebra — and the count 3, not the geometry √3</h2>
+    <div class="step">Step 4: The computation, with the numbers substituting live</div>
+    <h2>Two lines of algebra, and the count 3, not the geometry √3</h2>
     <p>First the current from terminal quantities (connection-agnostic: any balanced delta is indistinguishable from its wye equivalent from outside). Then the losses: <b>three conductors, each dissipating I²R</b>. The 3 counts copper paths; the √3 is triangle geometry. They are different animals that happen to be relatives.</p>
     <div class="panel">
       <div class="trace" id="trace"></div>
@@ -369,32 +369,32 @@ footer code{color:var(--dim)}
         <div class="stat"><div class="k">Energy, if run all year</div><div class="v" id="sYear">–</div></div>
         <div class="stat"><div class="k">Illustrative cost @ A$100/MWh</div><div class="v" id="sCost">–</div></div>
       </div>
-      <div class="svgcap">The annual figures assume this loading 24/7 — real loss load factors are lower, but the order of magnitude is the lesson: percent-level losses on one circuit are gigawatt-hours and millions of dollars. A curio worth showing: at unity pf, the loss percentage equals the resistive-drop percentage (both are I·R/V_LN) — a free self-check.</div>
+      <div class="svgcap">The annual figures assume this loading 24/7; real loss load factors are lower, but the order of magnitude is the lesson: percent-level losses on one circuit are gigawatt-hours and millions of dollars. A curio worth showing: at unity pf, the loss percentage equals the resistive-drop percentage (both are I·R/V_LN), a free self-check.</div>
     </div>
   </section>
 
   <section id="cliff">
-    <div class="step">Step 5 · Substitute back — the identity that explains the grid</div>
-    <h2>P_loss = R·P² / (V_LL·cos φ)² — the loss cliff</h2>
-    <p>Eliminate the current and the whole history of transmission falls out of one line: for fixed delivered power, <b>losses scale as 1/V²</b> and <b>1/pf²</b>. Double the voltage, quarter the loss. Flip to log–log and the law becomes a straight line of slope −2 — power laws always do.</p>
+    <div class="step">Step 5: Substitute back, the identity that explains the grid</div>
+    <h2>P_loss = R·P² / (V_LL·cos φ)²: the loss cliff</h2>
+    <p>Eliminate the current and the whole history of transmission falls out of one line: for fixed delivered power, <b>losses scale as 1/V²</b> and <b>1/pf²</b>. Double the voltage, quarter the loss. Flip to log-log and the law becomes a straight line of slope −2; power laws always do.</p>
     <div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px">
         <div class="svgcap" id="doubleNote" style="margin:0"></div>
-        <button class="btn" id="logBtn" aria-pressed="false">Show log–log</button>
+        <button class="btn" id="logBtn" aria-pressed="false">Show log-log</button>
       </div>
       <svg id="chartSvg" viewBox="0 0 760 420" role="img" aria-label="Losses versus line-to-line voltage for the current sliders"></svg>
-      <div class="svgcap"><b style="color:var(--dim)">The chart is a control:</b> drag anywhere on the plot to slide the operating voltage, or tap a dot to snap to a standard level — the whole page follows. Dots mark standard Australian voltage levels for the <em>same</em> conductor and load — left of the wall the model (and the conductor) melts; the trend is the point. In reality higher-voltage lines also carry heavier bundles, so real losses fall even faster than 1/V².</div>
+      <div class="svgcap"><b style="color:var(--dim)">The chart is a control:</b> drag anywhere on the plot to slide the operating voltage, or tap a dot to snap to a standard level; the whole page follows. Dots mark standard Australian voltage levels for the <em>same</em> conductor and load; left of the wall the model (and the conductor) melts; the trend is the point. In reality higher-voltage lines also carry heavier bundles, so real losses fall even faster than 1/V².</div>
     </div>
   </section>
 
   <section id="mistakes">
-    <div class="step">Step 6 · Diagnostics</div>
+    <div class="step">Step 6: Diagnostics</div>
     <h2>Three ways to be wrong by exactly 3 (or √3)</h2>
-    <p>These aren't random errors — each has a fingerprint. If two students' answers differ by exactly 3 or √3, hunt the V_LL/V_LN swap or the conductor count. The cards recompute from the sliders.</p>
+    <p>These aren't random errors; each has a fingerprint. If two students' answers differ by exactly 3 or √3, hunt the V_LL/V_LN swap or the conductor count. The cards recompute from the sliders.</p>
     <div class="mgrid">
       <div class="mcard">
         <h3>The single-phase paste</h3>
-        <code>I = P / (V_LL · cos φ) = <span id="mAI">–</span> A<br>P_loss = 3·I²·R = <span class="mono" id="mALc">–</span></code>
+        <code>I = P / (V_LL·cos φ) = <span id="mAI">–</span> A<br>P_loss = 3·I²·R = <span class="mono" id="mALc">–</span></code>
         <span class="got" id="mAL">–</span><span class="tag high">×3 too high</span>
         <p>Treated 275 kV as if it sat across each element carrying the full power. The missing √3 in the current becomes a clean factor of 3 in the loss.</p>
       </div>
@@ -402,7 +402,7 @@ footer code{color:var(--dim)}
         <h3>The lonely conductor</h3>
         <code>P_loss = I²·R  (correct I, no 3)</code>
         <span class="got" id="mBL">–</span><span class="tag low">×3 too low</span>
-        <p>Computed one conductor of three. Same fingerprint as pasting V_LL into the per-phase circuit — which is why the factor alone doesn't tell you <em>which</em> mistake was made.</p>
+        <p>Computed one conductor of three. Same fingerprint as pasting V_LL into the per-phase circuit, which is why the factor alone doesn't tell you <em>which</em> mistake was made.</p>
       </div>
       <div class="mcard">
         <h3>The geometry impostor</h3>
@@ -414,15 +414,15 @@ footer code{color:var(--dim)}
   </section>
 
   <section id="history">
-    <div class="step">Coda · Why the ladder exists</div>
+    <div class="step">Coda: Why the ladder exists</div>
     <h2>Every rung is a factor of 1/V²</h2>
-    <p>The identity above is not just an exam formula — it is the selection pressure that built the grid. Each generation of engineers climbed one rung of voltage to push the same power with a quarter of the burn (and each rung demanded earthed-wye insulation economics).</p>
+    <p>The identity above is not just an exam formula; it is the selection pressure that built the grid. Each generation of engineers climbed one rung of voltage to push the same power with a quarter of the burn (and each rung demanded earthed-wye insulation economics).</p>
     <div class="rail">
-      <div class="era"><div class="y">1889–91</div><div class="kv">10 kV</div><div class="w">Deptford, London — Ferranti gambles on high-voltage AC to the city</div></div>
-      <div class="era"><div class="y">1923</div><div class="kv">220 kV</div><div class="w">Pit River, California — the first 220 kV class lines</div></div>
+      <div class="era"><div class="y">1889-91</div><div class="kv">10 kV</div><div class="w">Deptford, London: Ferranti gambles on high-voltage AC to the city</div></div>
+      <div class="era"><div class="y">1923</div><div class="kv">220 kV</div><div class="w">Pit River, California: the first 220 kV class lines</div></div>
       <div class="era"><div class="y">1936</div><div class="kv">287 kV</div><div class="w">Hoover Dam → Los Angeles, ~430 km</div></div>
-      <div class="era"><div class="y">1952</div><div class="kv">380 kV</div><div class="w">Harspränget, Sweden — Europe goes EHV</div></div>
-      <div class="era"><div class="y">1965</div><div class="kv">735 kV</div><div class="w">Hydro-Québec — hydropower a thousand km from the load</div></div>
+      <div class="era"><div class="y">1952</div><div class="kv">380 kV</div><div class="w">Harspränget, Sweden: Europe goes EHV</div></div>
+      <div class="era"><div class="y">1965</div><div class="kv">735 kV</div><div class="w">Hydro-Québec: hydropower a thousand km from the load</div></div>
       <div class="era now"><div class="y">today</div><div class="kv">275 kV</div><div class="w">the Queensland backbone this problem is set on</div></div>
     </div>
   </section>
@@ -430,7 +430,7 @@ footer code{color:var(--dim)}
   <footer>
     <p><b style="color:var(--dim)">The whole derivation on one line.</b><br>
     <code>P = √3·V_LL·I_L·cos φ  ⇒  I_L = P/(√3·V_LL·cos φ)  ⇒  P_loss = 3·I_L²·R = R·P²/(V_LL·cos φ)²</code></p>
-    <p>Scope honestly stated: with only R given, the sending-end <em>voltage</em> is out of reach — a real 275 kV line has X ≈ 0.3–0.4 Ω/km ≫ R, and X dominates regulation while dissipating nothing. Losses never needed it. Built as a teaching aid; all quantities recompute in the browser, nothing is stored.</p>
+    <p>Scope honestly stated: with only R given, the sending-end <em>voltage</em> is out of reach; a real 275 kV line has X ≈ 0.3 to 0.4 Ω/km ≫ R, and X dominates regulation while dissipating nothing. Losses never needed it. Built as a teaching aid; all quantities recompute in the browser, nothing is stored.</p>
   </footer>
 
 </main>
@@ -541,7 +541,7 @@ function drawChart(d){
   s+='<line x1="'+M.l+'" y1="'+M.t+'" x2="'+M.l+'" y2="'+(H-M.b)+'" stroke="var(--line)" stroke-width="1.5"/>';
   s+='<line x1="'+M.l+'" y1="'+(H-M.b)+'" x2="'+(W-M.r)+'" y2="'+(H-M.b)+'" stroke="var(--line)" stroke-width="1.5"/>';
   s+='<text x="'+(W-M.r)+'" y="'+(H-10)+'" font-size="11.5" fill="var(--dim)" text-anchor="end">V_LL  (kV)</text>';
-  s+='<text x="'+M.l+'" y="14" font-size="11.5" fill="var(--dim)">losses (MW) — same conductor, same delivered P</text>';
+  s+='<text x="'+M.l+'" y="14" font-size="11.5" fill="var(--dim)">losses (MW): same conductor, same delivered P</text>';
   // curve
   var path='',n=220;
   for(k=0;k<=n;k++){
@@ -564,7 +564,7 @@ function drawChart(d){
     s+='<circle cx="'+x+'" cy="'+y+'" r="4" fill="var(--panel)" stroke="var(--phC)" stroke-width="2"/>';
     var ly=y-(i%2? 12:26);
     if(ly<M.t+10) ly=y+18+(i%2?0:12);
-    s+='<text x="'+x+'" y="'+ly+'" font-size="10.5" fill="var(--dim)" text-anchor="middle">'+nfi(V/1e3)+' · '+fmtVal(L)+'</text>';
+    s+='<text x="'+x+'" y="'+ly+'" font-size="10.5" fill="var(--dim)" text-anchor="middle">'+nfi(V/1e3)+', '+fmtVal(L)+'</text>';
     s+='<circle cx="'+x+'" cy="'+y+'" r="11" fill="transparent" data-v="'+V+'"><title>snap to '+nfi(V/1e3)+' kV</title></circle>';
   });
   // current operating point + label
@@ -612,10 +612,10 @@ function drawWalk(d){
   var OX=58, OY=200;
   function P2(re,im){ return (OX+k*re).toFixed(1)+','+(OY-k*im).toFixed(1); }
   var g='';
-  g+='<line x1="18" y1="'+OY+'" x2="445" y2="'+OY+'" stroke="var(--gridline)" stroke-width="1"/>';
+  g+='<line x1="18" y1="'+OY+'" x2="445" y2="'+OY+'" stroke="var(--faint)" stroke-width="1" opacity=".45"/><text x="10" y="'+(OY+4)+'" font-size="11" fill="var(--faint)">0</text>';
   // V_R (reference)
   g+='<line x1="'+OX+'" y1="'+OY+'" x2="'+(OX+k*d.VLN).toFixed(1)+'" y2="'+OY+'" stroke="var(--dim)" stroke-width="2.2" marker-end="url(#wW)"/>';
-  g+='<text x="'+(OX+k*d.VLN*0.5).toFixed(1)+'" y="'+(OY+18)+'" font-size="12" fill="var(--dim)" text-anchor="middle">V_R — receiving (load) end, reference</text>';
+  g+='<text x="'+(OX+k*d.VLN*0.5).toFixed(1)+'" y="'+(OY+18)+'" font-size="12" fill="var(--dim)" text-anchor="middle">V_R, receiving (load) end, reference</text>';
   // I at −φ
   var ix=OX+72*Math.cos(ph), iy=OY+72*Math.sin(ph);
   g+='<line x1="'+OX+'" y1="'+OY+'" x2="'+ix.toFixed(1)+'" y2="'+iy.toFixed(1)+'" stroke="var(--text)" stroke-width="1.6" stroke-dasharray="3 4" marker-end="url(#wT)"/>';
@@ -711,8 +711,8 @@ function render(){
   up('angOut',nf(30+d.phi,1));
 
   $('trace').innerHTML=
-    '<span class="row"><span class="lhs">I_L &nbsp;&nbsp;= P / (√3 · V_LL · cos φ) </span>= <span class="num">'+nfi(S.P)+'</span> / (1.732 × <span class="num">'+nfi(S.V)+'</span> × <span class="num">'+nf(S.pf,2)+'</span>) = <span class="res">'+nf(d.I,1)+' A</span> <span class="cm">// terminal form — wye or delta, can\'t tell, doesn\'t matter</span></span>'
-   +'<span class="row"><span class="lhs">P_loss = 3 · I_L² · R &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>= 3 × <span class="num">'+nf(d.I,1)+'</span>² × <span class="num">'+nf(d.R,2)+'</span> Ω = <span class="res">'+mw(d.loss)+' MW</span> <span class="cm">// 3 counts conductors; √3 is geometry</span></span>'
+    '<span class="row"><span class="lhs">I_L &nbsp;&nbsp;= P / (√3·V_LL·cos φ) </span>= <span class="num">'+nfi(S.P)+'</span> / (1.732 × <span class="num">'+nfi(S.V)+'</span> × <span class="num">'+nf(S.pf,2)+'</span>) = <span class="res">'+nf(d.I,1)+' A</span> <span class="cm">// terminal form: wye or delta, can\'t tell, doesn\'t matter</span></span>'
+   +'<span class="row"><span class="lhs">P_loss = 3·I_L²·R &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>= 3 × <span class="num">'+nf(d.I,1)+'</span>² × <span class="num">'+nf(d.R,2)+'</span> Ω = <span class="res">'+mw(d.loss)+' MW</span> <span class="cm">// 3 counts conductors; √3 is geometry</span></span>'
    +'<span class="row"><span class="lhs">check: R·P²/(V_LL·cos φ)² </span>= <span class="num">'+nf(d.R,2)+'</span> × <span class="num">'+nfi(S.P)+'</span>² / (<span class="num">'+nfi(S.V)+'</span> × <span class="num">'+nf(S.pf,2)+'</span>)² = <span class="res">'+mw(d.R*S.P*S.P/(S.V*S.V*S.pf*S.pf))+' MW</span> <span class="ok">✓ same</span></span>';
 
   up('sR',nf(d.R,2)+' Ω');
@@ -769,7 +769,7 @@ $('spinBtn').addEventListener('click',function(){
 $('logBtn').addEventListener('click',function(){
   S.log=!S.log;
   this.setAttribute('aria-pressed',S.log?'true':'false');
-  this.textContent=S.log?'Show linear':'Show log–log';
+  this.textContent=S.log?'Show linear':'Show log-log';
   render();
 });
 
@@ -779,10 +779,11 @@ $('logBtn').addEventListener('click',function(){
    scrolling. So the deck keeps a constant flow footprint — the height it gives up when it
    condenses is parked in its bottom margin, and it condenses only once it has been pinned
    for exactly that distance, so the content below never moves. */
-var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckStuck=false, deckRaf=0;
+var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckRaf=0;
 function measureDeck(){
-  var root=document.documentElement, was=deckWrap.classList.contains('stuck'), cs, H, h;
-  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page */
+  var root=document.documentElement, body=document.body, was=deckWrap.classList.contains('stuck'), cs, H, h;
+  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page … */
+  body.style.minHeight=root.scrollHeight+'px';      /* … nor shorten it: a shorter page clamps scrollY when the reader is at the bottom */
   deckWrap.style.marginBottom='';
   deckWrap.classList.remove('stuck'); H=deckWrap.getBoundingClientRect().height;   /* sub-pixel, so the margin swap is exact */ cs=getComputedStyle(deckWrap);
   deckMb=parseFloat(cs.marginBottom)||0;
@@ -791,12 +792,12 @@ function measureDeck(){
   deckWrap.classList.toggle('stuck',was);
   deckDelta=Math.max(0,H-h);
   if(was) deckWrap.style.marginBottom=(deckMb+deckDelta)+'px';
+  body.style.minHeight='';
   root.style.overflowAnchor='';
 }
 function placeDeck(){
   var st=window.scrollY>=deckTop+deckDelta;
-  if(st===deckStuck) return;
-  deckStuck=st;
+  if(st===deckWrap.classList.contains('stuck')) return;   /* the class is the one source of truth */
   deckWrap.classList.toggle('stuck',st);
   deckWrap.style.marginBottom=st?(deckMb+deckDelta)+'px':'';
 }

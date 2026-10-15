@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>The Same 300 Megawatts, Twice — Displacement Power Factor</title>
+<title>The Same 300 Megawatts, Twice: Displacement Power Factor</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
@@ -157,9 +157,9 @@ footer code{color:var(--dim)}
 <body>
 
 <header>
-  <div class="eyebrow">Power systems · worked example · 50 Hz</div>
+  <div class="eyebrow">Power systems / worked example / 50 Hz</div>
   <h1>The same 300 megawatts, twice</h1>
-  <p class="dek">A factory at the end of the 275&nbsp;kV line draws <b>300&nbsp;MW at unity power factor</b>. The identical factory next door draws the same <b>300&nbsp;MW — at cos&nbsp;φ&nbsp;=&nbsp;0.85 lagging</b>. Same useful power, same voltage, same product out the gate. Yet the second factory pulls <b>18% more current</b>, burns <b>38% more line loss</b>, and gets a bill for something called vars. Where did the extra amperes go? Everything below is live — drag the sliders and watch the waves, the triangle and the losses move together.</p>
+  <p class="dek">A factory at the end of the 275&nbsp;kV line draws <b>300&nbsp;MW at unity power factor</b>. The identical factory next door draws the same <b>300&nbsp;MW, at cos&nbsp;φ&nbsp;=&nbsp;0.85 lagging</b>. Same useful power, same voltage, same product out the gate. Yet the second factory pulls <b>18% more current</b>, burns <b>38% more line loss</b>, and gets a bill for something called vars. Where did the extra amperes go? Everything below is live: drag the sliders and watch the waves, the triangle and the losses move together.</p>
 
   <div class="strip">
     <div class="gauge"><div class="k">Line current I_L</div><div class="v"><span id="hI">–</span><span class="u">A</span></div><div class="sub">vs <span id="hIu">–</span> A at unity pf (+<span id="hIpc">–</span> %)</div></div>
@@ -176,7 +176,7 @@ footer code{color:var(--dim)}
     <div class="deck-head">
       <h2>Control deck</h2>
       <span class="spacer"></span>
-      <span class="deck-mini">true pf <b id="dTpf">–</b> · I_L <b id="dI">–</b> A</span>
+      <span class="deck-mini">true pf <b id="dTpf">–</b>, I_L <b id="dI">–</b> A</span>
       <button class="btn tiny" id="resetBtn">Reset question</button>
       <button class="btn tiny" id="deckToggle" aria-expanded="true">Hide ▴</button>
     </div>
@@ -194,29 +194,29 @@ footer code{color:var(--dim)}
         <input type="range" id="cQc" min="0" max="300" step="1" value="0" aria-label="Shunt capacitor compensation in megavars"></div>
       <div class="ctl"><label>Current THD_i <span class="badge" id="bThd">0 %</span></label>
         <input type="range" id="cThd" min="0" max="50" step="1" value="0" aria-label="Total harmonic distortion of the load current in percent"></div>
-      <div class="note">Q_c is shunt capacitance acting <b>at the load bus</b> — it changes what the line carries, never what the factory does. THD_i drives Step&nbsp;5 only: harmonic current adds RMS and heat but carries no average power and never touches cos&nbsp;φ_1 — exactly as x_L drove one panel on the line-losses page.</div>
+      <div class="note">Q_c is shunt capacitance acting <b>at the load bus</b>: it changes what the line carries, never what the factory does. THD_i drives Step&nbsp;5 only: harmonic current adds RMS and heat but carries no average power and never touches cos&nbsp;φ_1, exactly as x_L drove one panel on the line-losses page.</div>
     </div>
   </div>
   </div>
 
   <section id="assume">
-    <div class="step">Step 0 · The assumption ledger</div>
+    <div class="step">Step 0: The assumption ledger</div>
     <h2>Say the fine print out loud</h2>
     <p>Power factor is three different numbers wearing one name. These chips pin down which one each panel is showing. Tap a chip to unfold its fine print.</p>
     <div class="chips">
-      <span class="chip" data-d="The grid holds the voltage waveform stiff; nonlinear loads bend the current, not the voltage. That is why the slider is THD_i, and why v(t) stays a clean 50 Hz sine in every panel below.">V sinusoidal — distortion lives in the current</span>
-      <span class="chip" data-d="With harmonics present, φ is defined between the 50 Hz components of v and i only. Harmonic currents flowing against a clean sinusoidal voltage average to zero power — they add RMS amperes, not watts.">φ = angle between FUNDAMENTALS</span>
-      <span class="chip" data-d="displacement pf = cos φ_1 (the angle). distortion pf = I_1/I_rms (the waveshape). true pf = P/S = the product of the two. A cos-φ meter reads only the first; the billing meter feels both.">displacement pf · distortion pf · true pf = product</span>
-      <span class="chip" data-d="Equal magnitudes, 120° apart, identical loads — so one phase tells the whole story. The waves drawn below are per-phase quantities: V_LN against one line current.">balanced three-phase · per-phase waves shown</span>
+      <span class="chip" data-d="The grid holds the voltage waveform stiff; nonlinear loads bend the current, not the voltage. That is why the slider is THD_i, and why v(t) stays a clean 50 Hz sine in every panel below.">V sinusoidal: distortion lives in the current</span>
+      <span class="chip" data-d="With harmonics present, φ is defined between the 50 Hz components of v and i only. Harmonic currents flowing against a clean sinusoidal voltage average to zero power; they add RMS amperes, not watts.">φ = angle between FUNDAMENTALS</span>
+      <span class="chip" data-d="displacement pf = cos φ_1 (the angle). distortion pf = I_1/I_rms (the waveshape). true pf = P/S = the product of the two. A cos-φ meter reads only the first; the billing meter feels both.">displacement pf, distortion pf, true pf = product</span>
+      <span class="chip" data-d="Equal magnitudes, 120° apart, identical loads, so one phase tells the whole story. The waves drawn below are per-phase quantities: V_LN against one line current.">balanced three-phase, per-phase waves shown</span>
       <span class="chip" data-d="Load (motor) convention: lagging current means the load absorbs vars, Q &gt; 0. Leading current supplies vars, Q &lt; 0. Shunt capacitors supply vars at the bus, cancelling a lagging draw.">load convention: lagging current absorbs vars</span>
     </div>
     <div class="ledger" id="ledger" hidden></div>
   </section>
 
   <section id="waves">
-    <div class="step">Step 1 · Read the scope</div>
+    <div class="step">Step 1: Read the scope</div>
     <h2>An angle you can read as a time</h2>
-    <p>cos&nbsp;φ&nbsp;=&nbsp;0.85 sounds abstract until you put both waves on a scope. The current's zero-crossing arrives <b>Δt&nbsp;=&nbsp;φ/360°&nbsp;×&nbsp;20&nbsp;ms</b> after the voltage's — a lag you could measure with a stopwatch, if your stopwatch read microseconds. Flip the toggle in the deck and the current crosses <em>early</em> instead: leading. The phasor inset is the same fact frozen — I sits at −φ from V.</p>
+    <p>cos&nbsp;φ&nbsp;=&nbsp;0.85 sounds abstract until you put both waves on a scope. The current's zero-crossing arrives <b>Δt&nbsp;=&nbsp;φ/360°&nbsp;×&nbsp;20&nbsp;ms</b> after the voltage's, a lag you could measure with a stopwatch, if your stopwatch read microseconds. Flip the toggle in the deck and the current crosses <em>early</em> instead: leading. The phasor inset is the same fact frozen: I sits at −φ from V.</p>
     <div class="panel duo">
       <div>
         <svg id="wave1Svg" viewBox="0 0 760 330" role="img" aria-label="Per-phase voltage and current waves with zero-crossing markers and the time delay between them">
@@ -235,15 +235,15 @@ footer code{color:var(--dim)}
         <div class="stat"><div class="k">Displacement angle φ</div><div class="v" id="w1Phi">–</div></div>
         <div class="stat"><div class="k">cos φ (displacement pf)</div><div class="v" id="w1Pf">–</div></div>
         <div class="stat hot"><div class="k">Δt = φ/360° × 20 ms</div><div class="v" id="w1Dt">–</div></div>
-        <div class="stat"><div class="k">Peaks (√2 × RMS)</div><div class="v"><span id="w1Vp">–</span> <small>· </small><span id="w1Ip">–</span></div></div>
+        <div class="stat"><div class="k">Peaks (√2 × RMS)</div><div class="v"><span id="w1Vp">–</span><small>, </small><span id="w1Ip">–</span></div></div>
       </div>
     </div>
   </section>
 
   <section id="instant">
-    <div class="step">Step 2 · Instantaneous power</div>
+    <div class="step">Step 2: Instantaneous power</div>
     <h2>Multiply the waves</h2>
-    <p>Point-by-point, p(t)&nbsp;=&nbsp;v(t)·i(t) splits into two machines: an <b style="color:var(--good)">always-forward hump</b> P_1·(1−cos&nbsp;2ωt) that averages to real power, and a <b style="color:var(--phC)">zero-average slosh</b> −Q_1·sin&nbsp;2ωt that ships energy to the load and hauls it straight back, twice per cycle. The slosh is reactive power — it does nothing useful and it still has to fit down the wire.</p>
+    <p>Point-by-point, p(t)&nbsp;=&nbsp;v(t)·i(t) splits into two machines: an <b style="color:var(--good)">always-forward hump</b> P_1·(1−cos&nbsp;2ωt) that averages to real power, and a <b style="color:var(--phC)">zero-average slosh</b> −Q_1·sin&nbsp;2ωt that ships energy to the load and hauls it straight back, twice per cycle. The slosh is reactive power: it does nothing useful and it still has to fit down the wire.</p>
     <div class="panel">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px">
         <button class="btn tiny" id="humpBtn" aria-pressed="true">P_1 hump</button>
@@ -259,14 +259,14 @@ footer code{color:var(--dim)}
         <div class="stat"><div class="k">Minimum of p(t)</div><div class="v" id="p2Min">–</div></div>
         <div class="stat"><div class="k">Q_1 slosh amplitude</div><div class="v" id="p2Q">–</div></div>
       </div>
-      <div class="svgcap">The red-shaded lobes are the moments the load pushes power <em>back into the grid</em> — the receipt for every var. At unity pf they vanish; the hump alone remains and never dips below zero.</div>
+      <div class="svgcap">The red-shaded lobes are the moments the load pushes power <em>back into the grid</em>, the receipt for every var. At unity pf they vanish; the hump alone remains and never dips below zero.</div>
     </div>
   </section>
 
   <section id="triangle">
-    <div class="step">Step 3 · Apparent power</div>
+    <div class="step">Step 3: Apparent power</div>
     <h2>The triangle you pay for</h2>
-    <p>Average the hump and the slosh separately and you get the power triangle: P on the horizontal, Q on the vertical, and the hypotenuse S&nbsp;=&nbsp;√(P²+Q²) — the quantity the conductors actually feel, because <b>the amperes follow S, not P</b>. Capacitors at the bus supply vars locally, eating the vertical leg from the top down: slide Q_c and watch the hypotenuse — and the current — shrink.</p>
+    <p>Average the hump and the slosh separately and you get the power triangle: P on the horizontal, Q on the vertical, and the hypotenuse S&nbsp;=&nbsp;√(P²+Q²), the quantity the conductors actually feel, because <b>the amperes follow S, not P</b>. Capacitors at the bus supply vars locally, eating the vertical leg from the top down: slide Q_c and watch the hypotenuse (and the current) shrink.</p>
     <div class="panel duo">
       <div>
         <svg id="triSvg" viewBox="0 0 660 380" role="img" aria-label="Live power triangle with capacitor correction eating the reactive leg">
@@ -277,14 +277,14 @@ footer code{color:var(--dim)}
           </defs>
           <g id="t3G"></g>
         </svg>
-        <div class="svgcap">Drawn to the S = V·I* convention (IEEE Std 1459 and every current textbook): the conjugate turns the current's −φ lag into +φ, so an inductive load has <b>positive</b> Q and its vars stand <b>above</b> the P axis even though the current itself lags. Push Q_c past Q and the triangle flips <b>below</b> the axis — the bus is now leading, and the hypotenuse starts growing again. Overcorrection is just undercorrection in a mirror.</div>
+        <div class="svgcap">Drawn to the S = V·I* convention (IEEE Std 1459 and every current textbook): the conjugate turns the current's −φ lag into +φ, so an inductive load has <b>positive</b> Q and its vars stand <b>above</b> the P axis even though the current itself lags. Push Q_c past Q and the triangle flips <b>below</b> the axis: the bus is now leading, and the hypotenuse starts growing again. Overcorrection is just undercorrection in a mirror.</div>
       </div>
       <div class="readouts">
         <div class="stat hot"><div class="k">Apparent power S (line)</div><div class="v" id="t3S">–</div></div>
         <div class="stat"><div class="k">Vars left after Q_c</div><div class="v" id="t3Qn">–</div></div>
         <div class="stat"><div class="k">Corrected angle φ′</div><div class="v" id="t3Phi">–</div></div>
         <div class="stat"><div class="k">Corrected pf′ = cos φ′</div><div class="v" id="t3Pf">–</div></div>
-        <div class="stat hot"><div class="k">I′ = S′/(√3·V_LL) — amperes follow S</div><div class="v" id="t3I">–</div></div>
+        <div class="stat hot"><div class="k">I′ = S′/(√3·V_LL): amperes follow S</div><div class="v" id="t3I">–</div></div>
         <button class="btn" id="snapBtn">Snap Q_c to reach pf 0.95</button>
         <div class="svgcap" id="t3Note">–</div>
       </div>
@@ -292,9 +292,9 @@ footer code{color:var(--dim)}
   </section>
 
   <section id="lineloss">
-    <div class="step">Step 4 · Losses</div>
+    <div class="step">Step 4: Losses</div>
     <h2>What the line thinks</h2>
-    <p>Borrow the line-losses page's identity, <b>P_loss = R·P²/(V_LL·cos&nbsp;φ)²</b>, with its own line: R&nbsp;=&nbsp;6&nbsp;Ω per phase (0.05&nbsp;Ω/km&nbsp;×&nbsp;120&nbsp;km). Delivered power and voltage fixed by the sliders, the pf is the only knob left — and losses climb as <b>1/pf²</b>. The dot sits at the <em>corrected</em> pf′, so watch it slide downhill as Q_c does its work.</p>
+    <p>Borrow the line-losses page's identity, <b>P_loss = R·P²/(V_LL·cos&nbsp;φ)²</b>, with its own line: R&nbsp;=&nbsp;6&nbsp;Ω per phase (0.05&nbsp;Ω/km&nbsp;×&nbsp;120&nbsp;km). Delivered power and voltage fixed by the sliders, the pf is the only knob left, and losses climb as <b>1/pf²</b>. The dot sits at the <em>corrected</em> pf′, so watch it slide downhill as Q_c does its work.</p>
     <div class="panel">
       <svg id="multSvg" viewBox="0 0 760 360" role="img" aria-label="Loss multiplier one over power factor squared with the operating point marked">
         <g id="m4G"></g>
@@ -307,14 +307,14 @@ footer code{color:var(--dim)}
         <div class="stat"><div class="k">Extra energy / year</div><div class="v" id="m4Year">–</div></div>
         <div class="stat hot"><div class="k">Extra cost @ A$100/MWh</div><div class="v" id="m4Cost">–</div></div>
       </div>
-      <div class="svgcap">Honestly stated: this assumes the flagship's line (6&nbsp;Ω, 120&nbsp;km) and this loading 24/7 — real loss load factors are lower. The order of magnitude is the lesson: a power-factor angle on one circuit is millions of dollars a year, which is why utilities bill for vars and factories buy capacitors.</div>
+      <div class="svgcap">Honestly stated: this assumes the flagship's line (6&nbsp;Ω, 120&nbsp;km) and this loading 24/7; real loss load factors are lower. The order of magnitude is the lesson: a power-factor angle on one circuit is millions of dollars a year, which is why utilities bill for vars and factories buy capacitors.</div>
     </div>
   </section>
 
   <section id="distortion">
-    <div class="step">Step 5 · Harmonics</div>
+    <div class="step">Step 5: Harmonics</div>
     <h2>Displacement earns its name</h2>
-    <p>Now let the current distort — a classic six-pulse rectifier draws 5th and 7th harmonics on top of the fundamental. Slide THD_i up and watch what does <em>not</em> move: <b>cos&nbsp;φ_1 stays exactly where the pf slider put it</b>, because φ is an angle between fundamentals. What falls is the <b>true</b> power factor P/S = cos&nbsp;φ_1&nbsp;×&nbsp;I_1/I_rms — the harmonic amperes add RMS without adding watts.</p>
+    <p>Now let the current distort: a classic six-pulse rectifier draws 5th and 7th harmonics on top of the fundamental. Slide THD_i up and watch what does <em>not</em> move: <b>cos&nbsp;φ_1 stays exactly where the pf slider put it</b>, because φ is an angle between fundamentals. What falls is the <b>true</b> power factor P/S = cos&nbsp;φ_1&nbsp;×&nbsp;I_1/I_rms; the harmonic amperes add RMS without adding watts.</p>
     <div class="panel">
       <svg id="thdSvg" viewBox="0 0 760 310" role="img" aria-label="Clean sinusoidal voltage against a harmonically distorted current wave">
         <g id="d5G"></g>
@@ -326,32 +326,32 @@ footer code{color:var(--dim)}
         <div class="stat"><div class="k">I_rms = I_1·√(1+THD²)</div><div class="v" id="d5Irms">–</div></div>
         <div class="stat hot"><div class="k">Extra copper loss</div><div class="v" id="d5X">–</div></div>
       </div>
-      <div class="svgcap">Harmonic mix: I_5 = √0.8·THD·I_1 and I_7 = √0.2·THD·I_1 (so their RMS sum is exactly THD·I_1), zero-phase on the fundamental. The fix is split down the middle: <b>capacitors repair displacement, filters repair distortion</b> — and a cos-φ meter and a true-pf meter on the same feeder disagree by exactly the distortion factor.</div>
+      <div class="svgcap">Harmonic mix: I_5 = √0.8·THD·I_1 and I_7 = √0.2·THD·I_1 (so their RMS sum is exactly THD·I_1), zero-phase on the fundamental. The fix is split down the middle: <b>capacitors repair displacement, filters repair distortion</b>, and a cos-φ meter and a true-pf meter on the same feeder disagree by exactly the distortion factor.</div>
     </div>
   </section>
 
   <section id="mistakes">
-    <div class="step">Step 6 · Diagnostics</div>
+    <div class="step">Step 6: Diagnostics</div>
     <h2>Three ways to get vars wrong</h2>
-    <p>Each mistake has a fingerprint. The cards recompute from the sliders — poke the deck and watch the wrongness track the truth.</p>
+    <p>Each mistake has a fingerprint. The cards recompute from the sliders; poke the deck and watch the wrongness track the truth.</p>
     <div class="mgrid">
       <div class="mcard">
         <h3>The subtraction var</h3>
         <code>Q = S − P = <span id="mA1">–</span> MVAr ?</code>
-        <span class="got" id="mA2">–</span><span class="tag high">real Q — √(S²−P²)</span>
-        <p>P, Q and S make a right triangle, not a shopping receipt. Vars live on the <em>vertical</em> leg, not in the arithmetic leftover — subtracting the legs of a triangle has never once produced its third side.</p>
+        <span class="got" id="mA2">–</span><span class="tag high">real Q is √(S²−P²)</span>
+        <p>P, Q and S make a right triangle, not a shopping receipt. Vars live on the <em>vertical</em> leg, not in the arithmetic leftover; subtracting the legs of a triangle has never once produced its third side.</p>
       </div>
       <div class="mcard">
         <h3>The optimistic meter</h3>
         <code>quote cos φ = <span id="mB1">–</span> as "the pf" at 40% THD</code>
-        <span class="got" id="mB2">–</span><span class="tag low">true pf — ×0.93 kVA missed</span>
-        <p>A cos-φ meter reads the fundamentals and misses every harmonic ampere. At 40% THD the true pf is lower by exactly the distortion factor <span class="mono" id="mB3">–</span> — size the transformer off the optimistic number and it runs hot.</p>
+        <span class="got" id="mB2">–</span><span class="tag low">true pf: ×0.93 kVA missed</span>
+        <p>A cos-φ meter reads the fundamentals and misses every harmonic ampere. At 40% THD the true pf is lower by exactly the distortion factor <span class="mono" id="mB3">–</span>; size the transformer off the optimistic number and it runs hot.</p>
       </div>
       <div class="mcard">
         <h3>The overcorrector</h3>
         <code>bolt on Q_c = 250 MVAr → Q′ = <span id="mC1">–</span></code>
         <span class="got" id="mC2">–</span><span class="tag high">current rising again</span>
-        <p>Past the P axis the triangle regrows on the other side: I_L is back up to <span class="mono" id="mC3">–</span>&nbsp;A against the <span class="mono" id="mC4">–</span>&nbsp;A minimum at exact correction. Vars cost money in either direction — set Q_c on the slider to 250 and watch Step&nbsp;3 flip.</p>
+        <p>Past the P axis the triangle regrows on the other side: I_L is back up to <span class="mono" id="mC3">–</span>&nbsp;A against the <span class="mono" id="mC4">–</span>&nbsp;A minimum at exact correction. Vars cost money in either direction; set Q_c on the slider to 250 and watch Step&nbsp;3 flip.</p>
       </div>
     </div>
   </section>
@@ -359,7 +359,7 @@ footer code{color:var(--dim)}
   <footer>
     <p><b style="color:var(--dim)">The whole story on one line.</b><br>
     <code>cos φ = P/S only when everything is sinusoidal; in general  true pf = P/S = cos φ_1 × I_1/I_rms,  with  S = √3·V_LL·I_L</code></p>
-    <p>Scope honestly stated: the voltage is kept sinusoidal (distortion lives in the current), the system is balanced, and Q_c is an ideal var source — no capacitor losses, no detuning reactors, no resonance study. Real installations need all three checked. Built as a teaching aid; all quantities recompute in the browser, nothing is stored.</p>
+    <p>Scope honestly stated: the voltage is kept sinusoidal (distortion lives in the current), the system is balanced, and Q_c is an ideal var source: no capacitor losses, no detuning reactors, no resonance study. Real installations need all three checked. Built as a teaching aid; all quantities recompute in the browser, nothing is stored.</p>
   </footer>
 
 </main>
@@ -423,14 +423,14 @@ function drawWave1(d){
     ip+=(k?' ':'')+X(t).toFixed(1)+','+(ymid-Ai*Math.sin(th-d.sg*d.phi)).toFixed(1);
   }
   var s='';
-  s+='<line x1="'+l+'" y1="'+ymid+'" x2="'+(W-r)+'" y2="'+ymid+'" stroke="var(--gridline)" stroke-width="1"/>';
+  s+='<line x1="'+l+'" y1="'+ymid+'" x2="'+(W-r)+'" y2="'+ymid+'" stroke="var(--faint)" stroke-width="1" opacity=".55"/><text x="'+(l-8)+'" y="'+(ymid+4)+'" font-size="11" fill="var(--faint)" text-anchor="end">0</text>';
   /* time axis */
   s+='<line x1="'+l+'" y1="272" x2="'+(W-r)+'" y2="272" stroke="var(--line)" stroke-width="1.5"/>';
   for(k=0;k<=8;k++){ t=5*k; var tx=X(t);
     s+='<line x1="'+tx+'" y1="272" x2="'+tx+'" y2="278" stroke="var(--line)" stroke-width="1.2"/>';
     if(k%2===0) s+='<text x="'+tx+'" y="294" font-size="11" fill="var(--faint)" text-anchor="middle">'+t+'</text>';
   }
-  s+='<text x="'+(W-r)+'" y="312" font-size="11" fill="var(--dim)" text-anchor="end">t (ms) — one cycle = 20 ms at 50 Hz</text>';
+  s+='<text x="'+(W-r)+'" y="312" font-size="11" fill="var(--dim)" text-anchor="end">t (ms), one cycle = 20 ms at 50 Hz</text>';
   s+='<polyline points="'+vp+'" fill="none" stroke="var(--phB)" stroke-width="2"/>';
   s+='<polyline points="'+ip+'" fill="none" stroke="var(--phC)" stroke-width="2.4"/>';
   s+='<text x="'+(l+4)+'" y="26" font-size="12" fill="var(--phB)">v(t)  peak √2·V_LN = '+nf(R2*d.VLN/1e3,1)+' kV</text>';
@@ -450,13 +450,13 @@ function drawWave1(d){
     var lx=clampX((xa+xb)/2,110,W);
     s+='<text x="'+lx.toFixed(1)+'" y="'+(ya-8)+'" font-size="11.5" fill="var(--amber)" text-anchor="middle">'+lbl+'</text>';
   } else {
-    s+='<text x="'+clampX(xv,90,W).toFixed(1)+'" y="244" font-size="11.5" fill="var(--amber)" text-anchor="middle">Δt = 0.000 ms — in phase</text>';
+    s+='<text x="'+clampX(xv,90,W).toFixed(1)+'" y="244" font-size="11.5" fill="var(--amber)" text-anchor="middle">Δt = 0.000 ms, in phase</text>';
   }
   $('w1G').innerHTML=s;
 
   /* phasor inset: V along reference, I at −φ (lag) / +φ (lead) */
   var cx=84,cy=96,g='';
-  g+='<line x1="'+(cx-70)+'" y1="'+cy+'" x2="'+(cx+92)+'" y2="'+cy+'" stroke="var(--gridline)" stroke-width="1"/>';
+  g+='<line x1="'+(cx-70)+'" y1="'+cy+'" x2="'+(cx+92)+'" y2="'+cy+'" stroke="var(--faint)" stroke-width="1" opacity=".45"/>';
   g+='<circle cx="'+cx+'" cy="'+cy+'" r="66" fill="none" stroke="var(--line)" stroke-width="1"/>';
   g+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+66)+'" y2="'+cy+'" stroke="var(--phB)" stroke-width="2.4" marker-end="url(#m1W)"/>';
   g+='<text x="'+(cx+72)+'" y="'+(cy+4)+'" font-size="12.5" fill="var(--phB)">V</text>';
@@ -503,22 +503,22 @@ function drawP2(d){
   s+='<polyline points="'+tot+'" fill="none" stroke="var(--amber)" stroke-width="2.8"/>';
   /* legend */
   s+='<text x="'+(l+2)+'" y="14" font-size="12" fill="var(--amber)">p(t) = v·i</text>';
-  s+='<text x="'+(l+130)+'" y="14" font-size="12" fill="var(--good)"'+(S.hump?'':' opacity=".35"')+'>P_1·(1−cos 2ωt) — forward hump</text>';
-  s+='<text x="'+(l+400)+'" y="14" font-size="12" fill="var(--phC)"'+(S.slosh?'':' opacity=".35"')+'>−Q_1·sin 2ωt — zero-average slosh</text>';
+  s+='<text x="'+(l+130)+'" y="14" font-size="12" fill="var(--good)"'+(S.hump?'':' opacity=".35"')+'>P_1·(1−cos 2ωt), the forward hump</text>';
+  s+='<text x="'+(l+400)+'" y="14" font-size="12" fill="var(--phC)"'+(S.slosh?'':' opacity=".35"')+'>−Q_1·sin 2ωt, the zero-average slosh</text>';
   /* time axis */
   for(k=0;k<=4;k++){ t=10*k; var tx=X(t);
     s+='<line x1="'+tx+'" y1="'+(H-b)+'" x2="'+tx+'" y2="'+(H-b+6)+'" stroke="var(--line)" stroke-width="1.2"/>';
     s+='<text x="'+tx+'" y="'+(H-b+20)+'" font-size="11" fill="var(--faint)" text-anchor="middle">'+t+'</text>';
   }
   s+='<line x1="'+l+'" y1="'+(H-b)+'" x2="'+(W-r)+'" y2="'+(H-b)+'" stroke="var(--line)" stroke-width="1.5"/>';
-  s+='<text x="'+(W-r)+'" y="'+(H-6)+'" font-size="11" fill="var(--dim)" text-anchor="end">t (ms) — p(t) beats at 100 Hz, twice per cycle</text>';
+  s+='<text x="'+(W-r)+'" y="'+(H-6)+'" font-size="11" fill="var(--dim)" text-anchor="end">t (ms); p(t) beats at 100 Hz, twice per cycle</text>';
   s+='<text x="'+l+'" y="'+(H-6)+'" font-size="11" fill="var(--dim)">MW, one phase</text>';
   $('p2G').innerHTML=s;
 
   $('trace2').innerHTML=
     '<span class="row"><span class="lhs">p(t) = P_1·(1−cos 2ωt) − Q_1·sin 2ωt </span><span class="cm">// one phase; v(t) = √2·V_LN·sin ωt, i(t) = √2·I_1·sin(ωt−φ)</span></span>'
-   +'<span class="row"><span class="lhs">P_1 = V_LN·I_1·cos φ </span>= <span class="num">'+nfi(d.VLN)+'</span> V × <span class="num">'+nf(d.I1,1)+'</span> A × <span class="num">'+nf(S.pf,2)+'</span> = <span class="res">'+mw(P1)+' MW</span> <span class="cm">// the average — watts that stay delivered</span></span>'
-   +'<span class="row"><span class="lhs">Q_1 = V_LN·I_1·sin φ </span>= <span class="num">'+nfi(d.VLN)+'</span> V × <span class="num">'+nf(d.I1,1)+'</span> A × <span class="num">'+nf(d.sg*Math.sin(d.phi),3)+'</span> = <span class="res">'+nf(Q1/1e6,2)+' MVAr</span> <span class="cm">// slosh amplitude — averages to nothing</span></span>'
+   +'<span class="row"><span class="lhs">P_1 = V_LN·I_1·cos φ </span>= <span class="num">'+nfi(d.VLN)+'</span> V × <span class="num">'+nf(d.I1,1)+'</span> A × <span class="num">'+nf(S.pf,2)+'</span> = <span class="res">'+mw(P1)+' MW</span> <span class="cm">// the average: watts that stay delivered</span></span>'
+   +'<span class="row"><span class="lhs">Q_1 = V_LN·I_1·sin φ </span>= <span class="num">'+nfi(d.VLN)+'</span> V × <span class="num">'+nf(d.I1,1)+'</span> A × <span class="num">'+nf(d.sg*Math.sin(d.phi),3)+'</span> = <span class="res">'+nf(Q1/1e6,2)+' MVAr</span> <span class="cm">// slosh amplitude: averages to nothing</span></span>'
    +'<span class="row"><span class="lhs">min p(t) = P_1 − V_LN·I_1 </span>= <span class="num">'+mw(P1)+'</span> − <span class="num">'+mw(S1p)+'</span> = <span class="res">'+mw(P1-S1p)+' MW</span> <span class="cm">// negative ⇒ the load gives power back</span></span>';
 
   up('p2Avg',mw(P1)+' MW');
@@ -537,7 +537,7 @@ function drawTri(d){
   var degen=Math.abs(Qm)<0.02*Pm;             /* unity-ish load: the triangle closes onto the P axis */
   var qly=null;                               /* Q-leg label baseline, for de-collision with the Q_c label */
   var s='';
-  s+='<line x1="'+(x0-30)+'" y1="'+y0+'" x2="'+(W-8)+'" y2="'+y0+'" stroke="var(--gridline)" stroke-width="1"/>';
+  s+='<line x1="'+(x0-30)+'" y1="'+y0+'" x2="'+(W-8)+'" y2="'+y0+'" stroke="var(--faint)" stroke-width="1" opacity=".45"/>';
   s+='<text x="'+(W-12)+'" y="'+(y0-6)+'" font-size="11" fill="var(--faint)" text-anchor="end">P axis</text>';
   /* P leg */
   s+='<line x1="'+x0+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+y0+'" stroke="var(--good)" stroke-width="3" marker-end="url(#m3G)"/>';
@@ -558,10 +558,11 @@ function drawTri(d){
   /* S hypotenuse */
   s+='<line x1="'+x0+'" y1="'+y0+'" x2="'+Bx.toFixed(1)+'" y2="'+Cy.toFixed(1)+'" stroke="var(--amber)" stroke-width="3" marker-end="url(#m3A)"/>';
   if(degen){
-    s+='<text x="'+clampX((x0+Bx)/2,123,W).toFixed(1)+'" y="'+(y0-30)+'" font-size="12.5" fill="var(--amber)" text-anchor="middle">unity — the triangle closes: S = P</text>';
+    s+='<text x="'+clampX((x0+Bx)/2,123,W).toFixed(1)+'" y="'+(y0-30)+'" font-size="12.5" fill="var(--amber)" text-anchor="middle">unity: the triangle closes, S = P</text>';
   } else {
-    var sy=(y0+Cy)/2+(lagSide?20:-10);
-    s+='<text x="'+((x0+Bx)/2-10).toFixed(1)+'" y="'+sy.toFixed(1)+'" font-size="12.5" fill="var(--amber)" text-anchor="end">S = '+nf(d.S1/1e6,1)+' MVA</text>';
+    /* inside the triangle, just past the midpoint of the hypotenuse; a thin triangle has no room inside, so the label goes outside */
+    var thin=Math.abs(Cy-y0)<40, sy=(y0+Cy)/2+(((lagSide&&!thin)||(!lagSide&&thin))?20:-10);
+    s+='<text x="'+((x0+Bx)/2+10).toFixed(1)+'" y="'+sy.toFixed(1)+'" font-size="12.5" fill="var(--amber)" text-anchor="start">S = '+nf(d.S1/1e6,1)+' MVA</text>';
   }
   /* Q_c arrow eats the vertical leg */
   if(S.Qc>0.5){
@@ -612,7 +613,7 @@ function drawMult(d){
   s+='<line x1="'+l+'" y1="'+t0+'" x2="'+l+'" y2="'+(H-b)+'" stroke="var(--line)" stroke-width="1.5"/>';
   s+='<line x1="'+l+'" y1="'+(H-b)+'" x2="'+(W-r)+'" y2="'+(H-b)+'" stroke="var(--line)" stroke-width="1.5"/>';
   s+='<text x="'+(W-r)+'" y="'+(H-10)+'" font-size="11.5" fill="var(--dim)" text-anchor="end">corrected displacement pf′  (lead mirrored onto the same curve)</text>';
-  s+='<text x="'+l+'" y="14" font-size="11.5" fill="var(--dim)">loss multiplier 1/pf′² — same P, same V, same conductor</text>';
+  s+='<text x="'+l+'" y="14" font-size="11.5" fill="var(--dim)">loss multiplier 1/pf′²: same P, same V, same conductor</text>';
   var path='';
   for(k=0;k<=140;k++){ v=0.70+0.30*k/140; path+=(k?'L':'M')+X(v).toFixed(1)+','+Y(1/(v*v)).toFixed(1); }
   s+='<path d="'+path+'" fill="none" stroke="var(--amber)" stroke-width="2.4"/>';
@@ -652,7 +653,7 @@ function drawThd(d){
     fp+=(k?' ':'')+X(t).toFixed(1)+','+(ymid-Ai*Math.sin(th-d.sg*d.phi)).toFixed(1);
   }
   var s='';
-  s+='<line x1="'+l+'" y1="'+ymid+'" x2="'+(W-r)+'" y2="'+ymid+'" stroke="var(--gridline)" stroke-width="1"/>';
+  s+='<line x1="'+l+'" y1="'+ymid+'" x2="'+(W-r)+'" y2="'+ymid+'" stroke="var(--faint)" stroke-width="1" opacity=".55"/><text x="'+(l-8)+'" y="'+(ymid+4)+'" font-size="11" fill="var(--faint)" text-anchor="end">0</text>';
   s+='<line x1="'+l+'" y1="258" x2="'+(W-r)+'" y2="258" stroke="var(--line)" stroke-width="1.5"/>';
   for(k=0;k<=4;k++){ t=10*k; var tx=X(t);
     s+='<line x1="'+tx+'" y1="258" x2="'+tx+'" y2="264" stroke="var(--line)" stroke-width="1.2"/>';
@@ -662,8 +663,8 @@ function drawThd(d){
   s+='<polyline points="'+vp+'" fill="none" stroke="var(--phB)" stroke-width="1.6" opacity=".75"/>';
   if(d.T>0.005) s+='<polyline points="'+fp+'" fill="none" stroke="var(--phC)" stroke-width="1.2" stroke-dasharray="3 5" opacity=".55"/>';
   s+='<polyline points="'+ip+'" fill="none" stroke="var(--phC)" stroke-width="2.4"/>';
-  s+='<text x="'+(l+4)+'" y="24" font-size="12" fill="var(--phB)">v(t) — held sinusoidal</text>';
-  s+='<text x="'+(W-r-4)+'" y="24" font-size="12" fill="var(--phC)" text-anchor="end">i(t) — fundamental + 5th + 7th, THD '+S.thd+' %</text>';
+  s+='<text x="'+(l+4)+'" y="24" font-size="12" fill="var(--phB)">v(t), held sinusoidal</text>';
+  s+='<text x="'+(W-r-4)+'" y="24" font-size="12" fill="var(--phC)" text-anchor="end">i(t): fundamental + 5th + 7th, THD '+S.thd+' %</text>';
   $('d5G').innerHTML=s;
 }
 
@@ -684,7 +685,7 @@ function render(){
 
   up('hI',nf(d.Ic,1)); up('hIu',nf(d.Iu,1)); up('hIpc',nf(100*(d.Ic/d.Iu-1),2));
   up('hQ',nf(Math.abs(d.Qn)/1e6,1));
-  up('hQs', d.Qn>1e3?'lagging — the bus absorbs vars':(d.Qn<-1e3?'leading — the bus supplies vars':'fully corrected — no vars'));
+  up('hQs', d.Qn>1e3?'lagging: the bus absorbs vars':(d.Qn<-1e3?'leading: the bus supplies vars':'fully corrected, no vars'));
   up('hMult','×'+nf(d.mult,3));
   up('dTpf',nf(d.tpf,3)); up('dI',nf(d.Ic,1));
 
@@ -708,14 +709,14 @@ function render(){
   if(S.lead && d.Q<-1e3){
     var QL=(Math.abs(d.Q)-S.P*Math.tan(Math.acos(0.95)))/1e6;
     $('t3Note').innerHTML = QL>0.5
-      ? 'This load is <b>leading</b> — it already supplies vars, so capacitors are the wrong tool: every MVAr of Q_c pushes the bus further from unity. Reaching 0.95 lead needs <b>inductive</b> (shunt reactor) compensation absorbing '+nf(QL,1)+' MVAr, which this slider cannot provide.'
-      : 'This leading load is already at 0.95 or better — no correction needed. Adding Q_c would only push the bus further leading, away from unity.';
+      ? 'This load is <b>leading</b>: it already supplies vars, so capacitors are the wrong tool: every MVAr of Q_c pushes the bus further from unity. Reaching 0.95 lead needs <b>inductive</b> (shunt reactor) compensation absorbing '+nf(QL,1)+' MVAr, which this slider cannot provide.'
+      : 'This leading load is already at 0.95 or better; no correction needed. Adding Q_c would only push the bus further leading, away from unity.';
   } else if(d.Qc95>300e6){
-    $('t3Note').innerHTML='Correcting this load to 0.95 lag takes <b style="color:var(--good)">Q_c = '+nf(d.Qc95/1e6,1)+' MVAr</b> — more than the 300 MVAr bank on this slider. Snap caps the bank at 300 MVAr, leaving the bus '+nf((d.Qc95-300e6)/1e6,1)+' MVAr short of 0.95.';
+    $('t3Note').innerHTML='Correcting this load to 0.95 lag takes <b style="color:var(--good)">Q_c = '+nf(d.Qc95/1e6,1)+' MVAr</b>, more than the 300 MVAr bank on this slider. Snap caps the bank at 300 MVAr, leaving the bus '+nf((d.Qc95-300e6)/1e6,1)+' MVAr short of 0.95.';
   } else if(d.Qc95>0.5e6){
-    $('t3Note').innerHTML='Correcting this load to 0.95 lag takes <b style="color:var(--good)">Q_c = '+nf(d.Qc95/1e6,1)+' MVAr</b> — the line current falls from '+nf(d.I1,1)+' A (uncorrected) to <b style="color:var(--amber)">'+nf(d.I95,1)+' A</b>.';
+    $('t3Note').innerHTML='Correcting this load to 0.95 lag takes <b style="color:var(--good)">Q_c = '+nf(d.Qc95/1e6,1)+' MVAr</b>; the line current falls from '+nf(d.I1,1)+' A (uncorrected) to <b style="color:var(--amber)">'+nf(d.I95,1)+' A</b>.';
   } else {
-    $('t3Note').innerHTML='This load is already at or better than 0.95 lag — no capacitors needed. Q_c beyond the load\'s own vars only swings the bus leading.';
+    $('t3Note').innerHTML='This load is already at or better than 0.95 lag; no capacitors needed. Q_c beyond the load\'s own vars only swings the bus leading.';
   }
   drawTri(d);
 
@@ -729,7 +730,7 @@ function render(){
   drawMult(d);
 
   /* step 5 */
-  up('d5Phi',nf(S.pf,2)+' — unchanged');
+  up('d5Phi',nf(S.pf,2)+' (unchanged)');
   up('d5Dpf',nf(d.dpf,4));
   up('d5Tpf',nf(d.tpf,4)+tagLL(d.Qn));
   up('d5Irms',nf(d.Irms,1)+' A');
@@ -783,10 +784,11 @@ $('snapBtn').addEventListener('click',function(){
    scrolling. So the deck keeps a constant flow footprint — the height it gives up when it
    condenses is parked in its bottom margin, and it condenses only once it has been pinned
    for exactly that distance, so the content below never moves. */
-var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckStuck=false, deckRaf=0;
+var deckWrap=$('deckWrap'), deckSent=$('deckSentinel'), deckTop=0, deckDelta=0, deckMb=0, deckRaf=0;
 function measureDeck(){
-  var root=document.documentElement, was=deckWrap.classList.contains('stuck'), cs, H, h;
-  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page */
+  var root=document.documentElement, body=document.body, was=deckWrap.classList.contains('stuck'), cs, H, h;
+  root.style.overflowAnchor='none';                 /* the trial layouts must not scroll the page … */
+  body.style.minHeight=root.scrollHeight+'px';      /* … nor shorten it: a shorter page clamps scrollY when the reader is at the bottom */
   deckWrap.style.marginBottom='';
   deckWrap.classList.remove('stuck'); H=deckWrap.getBoundingClientRect().height;   /* sub-pixel, so the margin swap is exact */ cs=getComputedStyle(deckWrap);
   deckMb=parseFloat(cs.marginBottom)||0;
@@ -795,12 +797,12 @@ function measureDeck(){
   deckWrap.classList.toggle('stuck',was);
   deckDelta=Math.max(0,H-h);
   if(was) deckWrap.style.marginBottom=(deckMb+deckDelta)+'px';
+  body.style.minHeight='';
   root.style.overflowAnchor='';
 }
 function placeDeck(){
   var st=window.scrollY>=deckTop+deckDelta;
-  if(st===deckStuck) return;
-  deckStuck=st;
+  if(st===deckWrap.classList.contains('stuck')) return;   /* the class is the one source of truth */
   deckWrap.classList.toggle('stuck',st);
   deckWrap.style.marginBottom=st?(deckMb+deckDelta)+'px':'';
 }
